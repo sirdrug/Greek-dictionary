@@ -67,7 +67,7 @@ function byClass(t){
 function entry(e,li){
   const d=' data-l="'+li+'"';
   if(e.head) return '<div class="sub"'+d+'>'+esc(e.ru)+'</div>';
-  if(e.raw) return '<div class="e"'+d+'>'+byClass(e.ru)+'</div>';
+  if(e.raw||e.pair) return '<div class="e"'+d+'>'+byClass(e.ru)+'</div>';
   const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
   let h='<div class="e"'+d+'><span class="w">'+esc(e.w)+'</span>';
   if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
