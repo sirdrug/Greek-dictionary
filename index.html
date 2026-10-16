@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Словарик по урокам</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--p:#5B2A6E;--g:#8A8A8A;--d:#313131;--ours:#7A6E86;--bg:#fff;--line:#ece7ef}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--d);
+     font:16px/1.45 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif}
+header{position:sticky;top:0;background:var(--bg);border-bottom:1px solid var(--line);
+       padding:10px 14px 8px;z-index:5}
+h1{margin:0 0 8px;font-size:19px;color:var(--p)}
+#q{width:100%;padding:9px 11px;border:1px solid var(--line);border-radius:9px;
+   font-size:16px;outline:none}
+#q:focus{border-color:var(--p)}
+.hint{color:var(--g);font-size:12px;margin:6px 2px 0}
+main{padding:0 14px 40px}
+.les{margin:16px 0 6px;background:var(--p);color:#fff;border-radius:7px;padding:7px 10px}
+.les b{display:block;font-size:15px}
+.les span{display:block;font-size:11.5px;color:#D9CDE0;margin-top:2px}
+.e{padding:5px 2px;border-bottom:1px solid var(--line)}
+.w{color:var(--p);font-weight:700}
+.tr{color:var(--g);font-size:14px}
+.ru{color:var(--d)}
+.ours{color:var(--ours)}
+.raw{color:var(--d)}
+.none{color:var(--g);padding:18px 2px}
+footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<header>
+  <h1>Словарик по урокам</h1>
+  <input id="q" placeholder="поиск: по-гречески или по-русски" autocomplete="off">
+  <div class="hint">Серо-лиловым — добавлено при сборке, в документе этого нет.</div>
+</header>
+<main id="out"></main>
+<footer id="foot"></footer>
+<script>
+const out=document.getElementById('out'), q=document.getElementById('q'),
+      foot=document.getElementById('foot');
+let data=null;
+try{ if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();} }catch(e){}
+const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function entry(e){
+  if(e.raw) return '<div class="e"><span class="raw">'+esc(e.ru)+'</span></div>';
+  const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
+  let h='<div class="e"><span class="w">'+esc(e.w)+'</span>';
+  if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
+  if(e.ru) h+=' <span class="'+(ourRu?'ours':'ru')+'">— '+esc(e.ru)+'</span>';
+  return h+'</div>';
+}
+function render(filter){
+  const f=(filter||'').trim().toLowerCase();
+  let html='', shown=0;
+  for(const L of data.lessons){
+    const es=L.entries.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru).toLowerCase().includes(f)));
+    if(!es.length) continue;
+    shown+=es.length;
+    html+='<div class="les"><b>Урок '+esc(L.num)+' · '+esc(L.title)+'</b>'+
+          (L.title_ru?'<span>'+esc(L.title_ru)+'</span>':'')+'</div>';
+    html+=es.map(entry).join('');
+  }
+  out.innerHTML=html||'<div class="none">Такого слова в словаре нет.</div>';
+  foot.textContent=f?('Найдено статей: '+shown):('Уроков: '+data.lessons.length+
+      ' · статей: '+data.lessons.reduce((s,l)=>s+l.entries.length,0));
+}
+fetch('dict.json?'+Date.now()).then(r=>r.json()).then(d=>{data=d;render('');})
+  .catch(e=>{out.innerHTML='<div class="none">Не удалось загрузить словарь.</div>';});
+q.addEventListener('input',()=>render(q.value));
+</script>
+</body>
+</html>
