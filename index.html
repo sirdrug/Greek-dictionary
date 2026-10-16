@@ -18,7 +18,9 @@ h1{margin:0 0 8px;font-size:19px;color:var(--p)}
 #q:focus{border-color:var(--p)}
 .hint{color:var(--g);font-size:12px;margin:6px 2px 0}
 main{padding:0 14px 40px}
-.les{margin:16px 0 6px;background:var(--p);color:#fff;border-radius:7px;padding:7px 10px}
+.les{margin:16px 0 6px;background:var(--p);color:#fff;border-radius:7px;padding:7px 10px;
+     cursor:pointer;scroll-margin-top:96px}
+.e{cursor:pointer}
 .les b{display:block;font-size:15px}
 .les span{display:block;font-size:11.5px;color:#D9CDE0;margin-top:2px}
 .e{padding:5px 2px;border-bottom:1px solid var(--line)}
@@ -34,8 +36,9 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
 <body>
 <header>
   <h1>Словарик по урокам</h1>
-  <input id="q" placeholder="поиск: по-гречески или по-русски" autocomplete="off">
-  <div class="hint">Серо-лиловым — добавлено при сборке, в документе этого нет.</div>
+  <input id="q" placeholder="поиск: слово, или «урок 7»" autocomplete="off">
+  <div class="hint">Нажмите на слово или плашку — перейдёте к уроку целиком.
+  Серо-лиловым — добавлено при сборке, в документе этого нет.</div>
 </header>
 <main id="out"></main>
 <footer id="foot"></footer>
@@ -61,30 +64,57 @@ function byClass(t){
   if(last<t.length) out+='<span class="ru">'+esc(t.slice(last))+'</span>';
   return out;
 }
-function entry(e){
-  if(e.head) return '<div class="sub">'+esc(e.ru)+'</div>';
-  if(e.raw) return '<div class="e">'+byClass(e.ru)+'</div>';
+function entry(e,li){
+  const d=' data-l="'+li+'"';
+  if(e.head) return '<div class="sub"'+d+'>'+esc(e.ru)+'</div>';
+  if(e.raw) return '<div class="e"'+d+'>'+byClass(e.ru)+'</div>';
   const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
-  let h='<div class="e"><span class="w">'+esc(e.w)+'</span>';
+  let h='<div class="e"'+d+'><span class="w">'+esc(e.w)+'</span>';
   if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
   if(e.ru) h+=' <span class="'+(ourRu?'ours':'ru')+'">— '+esc(e.ru)+'</span>';
   return h+'</div>';
 }
+// Поиск ищет И по урокам: совпал номер, греческое название или перевод
+// названия — урок показывается ЦЕЛИКОМ. Иначе «урок 7» не находило ничего,
+// потому что слова «урок» нет ни в одной статье.
+function lessonHit(L,f){
+  if(!f) return false;
+  const num=('урок '+L.num+' '+L.num).toLowerCase();
+  return num.includes(f)||f.includes('урок '+L.num)
+       ||(L.title||'').toLowerCase().includes(f)
+       ||(L.title_ru||'').toLowerCase().includes(f);
+}
 function render(filter){
   const f=(filter||'').trim().toLowerCase();
-  let html='', shown=0;
-  for(const L of data.lessons){
-    const es=L.entries.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru).toLowerCase().includes(f)));
-    if(!es.length) continue;
-    shown+=es.length;
-    html+='<div class="les"><b>Урок '+esc(L.num)+' · '+esc(L.title)+'</b>'+
+  let html='', shownE=0, shownL=0;
+  data.lessons.forEach((L,i)=>{
+    const whole=lessonHit(L,f);
+    const es=whole?L.entries
+                  :L.entries.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru).toLowerCase().includes(f)));
+    if(!es.length) return;
+    shownE+=es.length; shownL++;
+    html+='<div class="les" id="les'+esc(L.num)+'" data-l="'+i+'">'+
+          '<b>Урок '+esc(L.num)+' · '+esc(L.title)+'</b>'+
           (L.title_ru?'<span>'+esc(L.title_ru)+'</span>':'')+'</div>';
-    html+=es.map(entry).join('');
-  }
+    html+=es.map(e=>entry(e,i)).join('');
+  });
   out.innerHTML=html||'<div class="none">Такого слова в словаре нет.</div>';
-  foot.textContent=f?('Найдено статей: '+shown):('Уроков: '+data.lessons.length+
-      ' · статей: '+data.lessons.reduce((s,l)=>s+l.entries.length,0));
+  foot.textContent=f?('Найдено: уроков '+shownL+' · статей '+shownE)
+                   :('Уроков: '+data.lessons.length+' · статей: '+
+                     data.lessons.reduce((s,l)=>s+l.entries.length,0));
 }
+// Нажатие на слово или на плашку: снять поиск, показать всё и перейти
+// к этому уроку — чтобы видеть его целиком, а не одну найденную строку.
+function goto(i){
+  const num=data.lessons[i].num;
+  q.value=''; render('');
+  const el=document.getElementById('les'+num);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+out.addEventListener('click',ev=>{
+  const t=ev.target.closest('[data-l]');
+  if(t) goto(+t.getAttribute('data-l'));
+});
 fetch('dict.json?'+Date.now()).then(r=>r.json()).then(d=>{data=d;render('');})
   .catch(e=>{out.innerHTML='<div class="none">Не удалось загрузить словарь.</div>';});
 q.addEventListener('input',()=>render(q.value));
