@@ -26,7 +26,7 @@ main{padding:0 14px 40px}
 .tr{color:var(--g);font-size:14px}
 .ru{color:var(--d)}
 .ours{color:var(--ours)}
-.raw{color:var(--d)}
+.sub{color:var(--p);font-weight:700;font-size:14px;margin:12px 2px 2px}
 .none{color:var(--g);padding:18px 2px}
 footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--line)}
 </style>
@@ -45,8 +45,25 @@ const out=document.getElementById('out'), q=document.getElementById('q'),
 let data=null;
 try{ if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();} }catch(e){}
 const esc=s=>(s||'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+// Разметка ПО КЛАССУ ЗНАКА: греческий кусок — фиолетовым полужирным,
+// [в скобках] — серым, прочее — тёмным. Так подсвечены ВСЕ строки,
+// а не только те, что разобрались на слово+транскрипцию.
+const GREEK=/[\u0370-\u03FF\u1F00-\u1FFF][\u0370-\u03FF\u1F00-\u1FFF\s,·]*|\[[^\]]*\]/g;
+function byClass(t){
+  let out='',last=0,m;
+  GREEK.lastIndex=0;
+  while((m=GREEK.exec(t))!==null){
+    if(m.index>last) out+='<span class="ru">'+esc(t.slice(last,m.index))+'</span>';
+    out+= m[0][0]==='[' ? '<span class="tr">'+esc(m[0])+'</span>'
+                        : '<span class="w">'+esc(m[0])+'</span>';
+    last=m.index+m[0].length;
+  }
+  if(last<t.length) out+='<span class="ru">'+esc(t.slice(last))+'</span>';
+  return out;
+}
 function entry(e){
-  if(e.raw) return '<div class="e"><span class="raw">'+esc(e.ru)+'</span></div>';
+  if(e.head) return '<div class="sub">'+esc(e.ru)+'</div>';
+  if(e.raw) return '<div class="e">'+byClass(e.ru)+'</div>';
   const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
   let h='<div class="e"><span class="w">'+esc(e.w)+'</span>';
   if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
