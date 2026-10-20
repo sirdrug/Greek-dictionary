@@ -36,9 +36,10 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
 <body>
 <header>
   <h1>Словарик по урокам</h1>
-  <input id="q" placeholder="поиск: слово, или «урок 7»" autocomplete="off">
-  <div class="hint">Нажмите на слово или плашку — перейдёте к уроку целиком.
-  Серо-лиловым — добавлено при сборке, в документе этого нет.</div>
+  <input id="q" placeholder="поиск: слово, «урок 7» или цифра" autocomplete="off">
+  <div class="hint">Нажмите на слово или плашку — перейдёте к разделу целиком.
+  Цифра показывает раздел чисел. Серо-лиловым — добавлено при сборке,
+  в документе этого нет.</div>
 </header>
 <main id="out"></main>
 <footer id="foot"></footer>
@@ -71,44 +72,67 @@ function entry(e,li){
   const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
   let h='<div class="e"'+d+'><span class="w">'+esc(e.w)+'</span>';
   if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
-  if(e.ru) h+=' <span class="'+(ourRu?'ours':'ru')+'">— '+esc(e.ru)+'</span>';
+  // Цифру рисует ПОТРЕБИТЕЛЬ: в данных она одним полем `digits`. Приписка к
+  // переводу слепила бы сторожа дыры — у статьи с пустым переводом поле всё
+  // равно было бы непусто (находка review-1).
+  const ru=e.digits?(e.digits+' — '+(e.ru||'')):e.ru;
+  if(ru) h+=' <span class="'+(ourRu?'ours':'ru')+'">— '+esc(ru)+'</span>';
   return h+'</div>';
 }
 // Поиск ищет И по урокам: совпал номер, греческое название или перевод
 // названия — урок показывается ЦЕЛИКОМ. Иначе «урок 7» не находило ничего,
 // потому что слова «урок» нет ни в одной статье.
-function lessonHit(L,f){
+// РАЗДЕЛ ОПОЗНАЁТСЯ ПО СТРОЕНИЮ, А НЕ ПО ИМЕНИ (форма dev-1): страница обходит
+// `sections` и не знает, сколько их и как они зовутся. Есть `num` — урок; нет —
+// наш раздел вроде чисел, и плашка пишет только название: «Урок undefined» было
+// бы хуже отсутствия номера.
+const barText=S=>S.num?('Урок '+S.num+' · '+(S.title||'')):(S.title||'');
+// ЧИСТАЯ ЦИФРА ПОКАЗЫВАЕТ РАЗДЕЛ ЦЕЛИКОМ, и так просил человек: «цифры просто в
+// поиске как цифры должны показывать раздел». Поэтому «347», которого в опорных
+// нет, выводит раздел чисел, а не «такого слова нет»: второе утверждало бы о
+// словаре то, чего в нём не смотрели.
+const hasDigits=S=>(S.entries||[]).some(e=>e.digits);
+function sectionHit(S,f){
   if(!f) return false;
-  const num=('урок '+L.num+' '+L.num).toLowerCase();
-  return num.includes(f)||f.includes('урок '+L.num)
-       ||(L.title||'').toLowerCase().includes(f)
-       ||(L.title_ru||'').toLowerCase().includes(f);
+  if(/^[0-9]+$/.test(f)&&hasDigits(S)) return true;
+  if(S.num){
+    const num=('урок '+S.num+' '+S.num).toLowerCase();
+    if(num.includes(f)||f.includes('урок '+S.num)) return true;
+  }
+  return (S.title||'').toLowerCase().includes(f)
+       ||(S.title_ru||'').toLowerCase().includes(f);
 }
 function render(filter){
   const f=(filter||'').trim().toLowerCase();
-  let html='', shownE=0, shownL=0;
-  data.lessons.forEach((L,i)=>{
-    const whole=lessonHit(L,f);
-    const es=whole?L.entries
-                  :L.entries.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru).toLowerCase().includes(f)));
+  const secs=data.sections||[];
+  let html='', shownE=0, shownS=0;
+  secs.forEach((S,i)=>{
+    const all=S.entries||[];
+    const whole=sectionHit(S,f);
+    const es=whole?all
+                  :all.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru+' '+(e.digits||''))
+                                      .toLowerCase().includes(f)));
     if(!es.length) return;
-    shownE+=es.length; shownL++;
-    html+='<div class="les" id="les'+esc(L.num)+'" data-l="'+i+'">'+
-          '<b>Урок '+esc(L.num)+' · '+esc(L.title)+'</b>'+
-          (L.title_ru?'<span>'+esc(L.title_ru)+'</span>':'')+'</div>';
+    shownE+=es.length; shownS++;
+    html+='<div class="les" id="sec'+i+'" data-l="'+i+'">'+
+          '<b>'+esc(barText(S))+'</b>'+
+          (S.title_ru?'<span>'+esc(S.title_ru)+'</span>':'')+'</div>';
     html+=es.map(e=>entry(e,i)).join('');
   });
   out.innerHTML=html||'<div class="none">Такого слова в словаре нет.</div>';
-  foot.textContent=f?('Найдено: уроков '+shownL+' · статей '+shownE)
-                   :('Уроков: '+data.lessons.length+' · статей: '+
-                     data.lessons.reduce((s,l)=>s+l.entries.length,0));
+  const les=secs.filter(S=>S.num).length;
+  foot.textContent=f?('Найдено: разделов '+shownS+' · статей '+shownE)
+                   :('Уроков: '+les+(secs.length>les?' · разделов: '+(secs.length-les):'')+
+                     ' · статей: '+secs.reduce((n,S)=>n+(S.entries||[]).length,0));
 }
 // Нажатие на слово или на плашку: снять поиск, показать всё и перейти
 // к этому уроку — чтобы видеть его целиком, а не одну найденную строку.
 function goto(i){
-  const num=data.lessons[i].num;
+  // Якорь по НОМЕРУ В СПИСКЕ, а не по номеру урока: у раздела чисел номера нет,
+  // и `les'+undefined` увело бы в никуда. Индекс при поиске не меняется — обход
+  // идёт по полному списку, отсеиваются только пустые.
   q.value=''; render('');
-  const el=document.getElementById('les'+num);
+  const el=document.getElementById('sec'+i);
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 out.addEventListener('click',ev=>{
