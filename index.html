@@ -37,9 +37,12 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
 <header>
   <h1>Словарик по урокам</h1>
   <input id="q" placeholder="поиск: слово, «урок 7» или цифра" autocomplete="off">
+  <!-- Третье предложение шапки снято 20.10 по наряду; довод записан в
+       README, раздел «Чего в нашем тексте не стоит». Здесь его нет нарочно:
+       ЭТА СТРАНИЦА УЕЗЖАЕТ К ЧЕЛОВЕКУ, а наши записки остаются у нас.
+       Цвет оставлен: оттенок — это вид, а не утверждение. -->
   <div class="hint">Нажмите на слово или плашку — перейдёте к разделу целиком.
-  Цифра показывает раздел чисел. Серо-лиловым — добавлено при сборке,
-  в документе этого нет.</div>
+  Цифра показывает раздел чисел.</div>
 </header>
 <main id="out"></main>
 <footer id="foot"></footer>
@@ -100,7 +103,10 @@ function sectionHit(S,f){
     if(num.includes(f)||f.includes('урок '+S.num)) return true;
   }
   return (S.title||'').toLowerCase().includes(f)
-       ||(S.title_ru||'').toLowerCase().includes(f);
+       ||(S.title_ru||'').toLowerCase().includes(f)
+       // Строка о составе тоже ищется: «составные» и «буквосочетания» — слова,
+       // которыми человек спросит про то, чего в разделе НЕТ.
+       ||(S.about||'').toLowerCase().includes(f);
 }
 function render(filter){
   const f=(filter||'').trim().toLowerCase();
@@ -117,6 +123,10 @@ function render(filter){
     html+='<div class="les" id="sec'+i+'" data-l="'+i+'">'+
           '<b>'+esc(barText(S))+'</b>'+
           (S.title_ru?'<span>'+esc(S.title_ru)+'</span>':'')+'</div>';
+    // Строка о составе — СВОЙСТВО раздела, а не статья в нём: один носитель на
+    // страницу, бумагу и бота (просьба dev-1). Рисуется там же, где стояла
+    // прежним пояснением — первой, до статей.
+    if(S.about) html+='<div class="sub" data-l="'+i+'">'+esc(S.about)+'</div>';
     html+=es.map(e=>entry(e,i)).join('');
   });
   out.innerHTML=html||'<div class="none">Такого слова в словаре нет.</div>';
