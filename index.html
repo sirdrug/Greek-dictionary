@@ -28,7 +28,9 @@ main{padding:0 14px 40px}
 .tr{color:var(--g);font-size:14px}
 .ru{color:var(--d)}
 .ours{color:var(--ours)}
-.sub{color:var(--p);font-weight:700;font-size:14px;margin:12px 2px 2px}
+.sub{color:var(--p);font-weight:700;font-size:14px;margin:12px 2px 2px;scroll-margin-top:96px}
+.jump{margin:6px 2px 2px;font-size:14px}
+.jump a{color:var(--p);text-decoration:none;border-bottom:1px dotted var(--p)}
 .conj{margin:3px 0 1px;font-size:14px}
 .conj span{color:var(--d)}
 .conjhead{color:var(--g);font-size:12px;margin:2px 0 3px}
@@ -334,7 +336,18 @@ function render(filter){
     // НАБРАЛ ПОДТИП — ПОКАЗЫВАЕМ ПОДТИП, и только его: так же, как бот.
     const однаГруппа=подгруппаПоИмени(S,f);
     const гр=однаГруппа?[однаГруппа]:подгруппы(S);
-    if(гр.length&&whole){
+    // РАЗДЕЛ ПОКАЗАН ЦЕЛИКОМ И БЕЗ ПОИСКА — ТОЖЕ ЦЕЛИКОМ, и это находка
+    // человека (28.10): «не вижу разделения… нет подзаголовка — сразу таблица
+    // с первым глаголом группы».
+    //
+    // Причина была в условии: подгруппы рисовались при `whole`, а `whole` —
+    // это ПОПАДАНИЕ раздела в поиск, и при пустом поиске он ложен (см.
+    // sectionHit: `if(!f) return false`). То есть ровно в самом частом случае
+    // — человек открыл страницу и ничего не набрал — раздел шёл плоским
+    // списком с мелкой меткой у статьи. Подзаголовки были, но их никто не
+    // видел.
+    const целиком=whole||!f;
+    if(гр.length&&целиком){
       // РАЗДЕЛ С ПОДГРУППАМИ, ПОКАЗАННЫЙ ЦЕЛИКОМ, РИСУЕТСЯ ПОДГРУППАМИ.
       // Признак — строение данных (`groups` или `group` у статьи), а не имя
       // раздела: имени «Глаголы» на странице в коде нет.
@@ -345,8 +358,20 @@ function render(filter){
         shownE+=без.length;
         html+=без.map(e=>entry(e,i)).join('');
       }
+      // ПЕРЕХОД К ТИПУ — ССЫЛКАМИ В НАЧАЛЕ РАЗДЕЛА (заказ человека: «нельзя
+      // перейти на глаголы того или иного типа»). Имена берутся из `groups`,
+      // как и подзаголовки: своего списка у страницы нет.
+      //
+      // Показываем перечень только когда нарисованы ВСЕ подгруппы: если человек
+      // спросил одну, ссылки на остальные вели бы в пустоту.
+      if(!однаГруппа&&гр.length>1){
+        html+='<div class="jump">'+гр.map(g=>
+          '<a href="#grp'+i+'-'+esc(g)+'" data-go="grp'+i+'-'+esc(g)+'">'+esc(g)+'</a>'
+        ).join('<span class="tr"> · </span>')+'</div>';
+      }
       гр.forEach(g=>{
-        html+='<div class="sub" data-l="'+i+'">'+esc(имяПодгруппы(S,g))+'</div>';
+        html+='<div class="sub" id="grp'+i+'-'+esc(g)+'" data-l="'+i+'">'+
+              esc(имяПодгруппы(S,g))+'</div>';
         const свои=es.filter(e=>(e.group||'')===g);
         shownE+=свои.length;
         // Подгруппа из перечня, которой в данных нет, называется СЛОВАМИ:
@@ -414,6 +439,17 @@ function goto(i){
   if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
 }
 out.addEventListener('click',ev=>{
+  // ПЕРЕХОД К ПОДГРУППЕ — ПЕРВЫМ, и он не сбрасывает поиск: человек просил
+  // попасть к типу, а не «показать всё». Сам переход делаем руками, чтобы не
+  // менять адрес страницы: она открыта из телеграма, и хвост «#grp…» в адресе
+  // ему ни к чему.
+  const j=ev.target.closest('[data-go]');
+  if(j){
+    ev.preventDefault();
+    const el=document.getElementById(j.getAttribute('data-go'));
+    if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+    return;
+  }
   const t=ev.target.closest('[data-l]');
   if(t) goto(+t.getAttribute('data-l'));
 });
