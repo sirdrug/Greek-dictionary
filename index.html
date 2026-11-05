@@ -39,6 +39,20 @@ main{padding:0 14px 40px}
 .stem{color:var(--g)}
 .end{color:var(--p);font-weight:700}
 .none{color:var(--g);padding:18px 2px}
+.tabs{display:flex;gap:8px;padding:8px 14px 0}
+.tab{border:1px solid var(--line);background:var(--bg);color:var(--g);
+     border-radius:9px;padding:7px 14px;font-size:14px;cursor:pointer}
+.tab.on{color:var(--p);border-color:var(--p);font-weight:700}
+.card{padding:14px 2px}
+.ask{font-size:26px;margin:6px 0 2px}
+.trans{font-size:15px;margin:0 0 6px}
+.opts{display:grid;gap:8px;margin:10px 0}
+.opt{text-align:left;border:1px solid var(--line);background:var(--bg);
+     color:var(--d);border-radius:9px;padding:11px 12px;font-size:16px;cursor:pointer}
+.opt.good{border-color:#2E7D32;background:#EAF5EA;color:#1B5E20;font-weight:700}
+.opt.bad{border-color:#C62828;background:#FBEAEA;color:#B71C1C}
+.next{margin-top:4px;border:1px solid var(--p);background:var(--p);color:#fff;
+      border-radius:9px;padding:10px 16px;font-size:15px;cursor:pointer}
 footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -53,8 +67,14 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
   <div class="hint">Нажмите на слово или плашку — перейдёте к разделу целиком.
   Цифра показывает раздел чисел.</div>
 </header>
-<main id="out"></main>
+<div class="tabs">
+  <button id="tabDict" class="tab on">Словарь</button>
+  <button id="tabTrainer" class="tab">Тренажёр</button>
+</div>
+<main id="dict"><div id="out"></div></main>
+<main id="trainer" hidden><div id="trainerBox"></div></main>
 <footer id="foot"></footer>
+<footer id="trainerFoot"></footer>
 <!-- СТРАНИЦА НАЗЫВАЕТ СЕБЯ, и это отдельная строка, а не часть «найдено».
 
      Наряд pm по живому случаю (23.10): человек открыл словарик из телеграма и
@@ -70,6 +90,10 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
 <script>
 const out=document.getElementById('out'), q=document.getElementById('q'),
       foot=document.getElementById('foot'),
+      trainerBox=document.getElementById('trainerBox'),
+      trainerFoot=document.getElementById('trainerFoot'),
+      tabDict=document.getElementById('tabDict'),
+      tabTrainer=document.getElementById('tabTrainer'),
       меня=document.getElementById('self');
 let data=null;
 try{ if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();} }catch(e){}
@@ -547,6 +571,254 @@ fetch('dict.json?'+Date.now()).then(
   },
   e=>{ say('Не удалось загрузить словарь: файл dict.json не получен ('+(e&&e.message||e)+').'); }
 );
+// ТРЕНАЖЁР: греческое слово -> четыре русских перевода. Заказ человека (через
+// pm, 05.11), его словами: «греческий — русский, все слова; при выборе ответа
+// если верный — подсвечиваем зелёным, если нет — наш ответ красным, а зелёным
+// правильный; и возвращаем чаще; транскрипцию после ответа».
+//
+// УСТРОЙСТВО: чистые функции отдельно от DOM. Вопросы, мера близости и разбор
+// ответа ничего не знают о странице — поэтому их мерит прибор (trainer_probe.js)
+// без браузера, и предмет проверяется прямо, а не через вид.
+//
+// Имена латиницей — правило человека (кириллица только в комментариях).
+const TRAINER_KEY='greek-dict-trainer-v1';
+// СТОП-СЛОВА МЕРЫ БЛИЗОСТИ: служебные слова русского перевода, по которым
+// «похожесть» мерить нельзя — они есть почти в каждом переводе.
+const TRAINER_STOP=new Set(['и','или','в','во','на','с','со','к','ко','по','за','из',
+  'от','до','у','о','об','не','ни','а','но','же','бы','что','как','это','то','та',
+  'тот','так','для','при','над','под','про','без','мой','моя','свой','быть','есть']);
+// МЕРА БЛИЗОСТИ ПЕРЕВОДОВ — ПО СУЩЕСТВУ, А НЕ ПО СТРОКЕ (условие pm).
+//
+// Полное совпадение строки не годится: «идти, ехать» и «идти пешком» прошли бы
+// как разные, а человек прочёл бы их как один ответ и был бы прав.
+//
+// Моя мера: переводы БЛИЗКИ, если у них есть общее значимое слово по КОРНЮ.
+// Корень беру грубо — первые пять букв нормализованного слова: так «идти» и
+// «идти» совпадают, «ехать» и «ездить» нет, но «ходить» и «ходить пешком» —
+// да. Служебные слова и слова короче трёх букв в счёт не идут.
+//
+// Цену меры я померил на живой выгрузке и назвал её в README: столько-то
+// вопросов она отбрасывает, потому что трёх НЕблизких чужих вариантов для них
+// не находится. Это честнее, чем показать человеку два правильных ответа.
+function trainerWords(ru){
+  return String(ru||'').toLowerCase()
+    .replace(/\([^)]*\)/g,' ')
+    .split(/[^a-zа-яё]+/i)
+    .filter(w=>w.length>=3&&!TRAINER_STOP.has(w))
+    .map(w=>w.slice(0,5));
+}
+function trainerTooClose(a,b){
+  if(!a||!b) return true;
+  const na=String(a).trim().toLowerCase(), nb=String(b).trim().toLowerCase();
+  if(na===nb) return true;
+  const wa=trainerWords(a), wb=new Set(trainerWords(b));
+  return wa.some(w=>wb.has(w));
+}
+// ЧТО ГОДИТСЯ В ВОПРОС (условие pm, и каждое условие куплено входом):
+//
+//	таблица спряжения   у статьи есть `forms` — это образец, а не слово
+//	строка-пометка      head/pair/raw: слова у неё нет вовсе
+//	пустое поле         нет `w` или нет `ru` — спрашивать не о чем
+//	копия               то же слово второй раз: спросили бы дважды об одном
+//	служебный заголовок  `head` ловит его тем же признаком
+// ПЕРЕВОД ОБЯЗАН БЫТЬ РУССКИМ. Находка review-1 на #529: в «четыре русских
+// перевода» пролезали строки, где русского перевода нет вовсе — буквосочетания
+// автора («ει» → «„и": μαγειρεύω — готовить · …») и слова, переведённые
+// греческим («ο Τούρκος» → «τουρκικά»). Признак взят у них и перемерен своей
+// рукой: кириллица есть И греческих букв ВНЕ скобок нет. Скобки отбрасываются
+// тем же приёмом, что в trainerWords, поэтому законное «говорить, разговаривать
+// (μιλάω ελληνικά)» остаётся.
+function trainerRu(ru){
+  const t=String(ru||'');
+  if(!/[\u0430-\u044f\u0451\u0410-\u042f\u0401]/.test(t)) return false;
+  return !/[\u0370-\u03ff\u1f00-\u1fff]/.test(t.replace(/\([^)]*\)/g,' '));
+}
+function trainerFit(e){
+  if(!e||e.head||e.pair||e.raw) return false;
+  // Поле forms несёт ДВА предмета: таблицу спряжения глагола и строку алфавита
+  // («Α α άλφα»). Спрашивать переводом нельзя ни то, ни другое: у буквы ответ
+  // («альфа · звук «а»») повторяет сам вопрос. Отбрасываем по носителю и
+  // называем оба предмета, а не один.
+  if((e.forms||[]).length) return false;
+  if(e.copy_of) return false;
+  if(!trainerRu(e.ru)) return false;
+  return !!String(e.w||'').trim()&&!!String(e.ru||'').trim();
+}
+function trainerPool(data){
+  // ОДНО СЛОВО — ОДНА КАРТОЧКА. Автор повторяет слово в поздних уроках, иногда
+  // с другим переводом («ο χρόνος»: «время» в 13-м, «время вообще; год» в
+  // 14-м). Две карточки на одно слово портят сразу две вещи: слово-повтор
+  // выпадает чаще прочих без всякой ошибки, а второй перевод того же слова
+  // может встать ЧУЖИМ вариантом к первому — человек узнаёт слово и получает
+  // красный за верное знание. Поэтому спрашиваем переводом ПЕРВОГО урока, а
+  // остальные переводы носим с собой в also: они запрещены как чужие варианты.
+  const out=[], at={};
+  ((data&&data.sections)||[]).forEach(S=>{
+    (S.entries||[]).forEach(e=>{
+      if(!trainerFit(e)) return;
+      const w=String(e.w).trim(), ru=String(e.ru).trim();
+      if(at[w]!==undefined){
+        const c=out[at[w]];
+        if(ru!==c.ru&&c.also.indexOf(ru)<0) c.also.push(ru);
+        return;
+      }
+      at[w]=out.length;
+      out.push({w:w,ru:ru,also:[],
+                tr:String(e.tr||'').trim(),
+                lesson:(S.num&&!S.by_us)?S.num:'',
+                section:S.title_ru||S.title||''});
+    });
+  });
+  return out;
+}
+// ВОПРОС: верный ответ и три чужих, НЕблизких ни к верному, ни друг к другу.
+// Не набралось трёх — вопроса нет вовсе (возвращаем null): показать человеку
+// два правильных ответа хуже, чем не спросить.
+function trainerQuestion(pool,card,rnd){
+  const r=rnd||Math.random;
+  const others=[];
+  // Запрещены и ПРОЧИЕ переводы того же слова (also): они верны не меньше
+  // спрошенного, и человек, знающий слово, выбрал бы их.
+  const seen=[card.ru].concat(card.also||[]);
+  const order=pool.map((x,i)=>({x,k:r()*1e9+i})).sort((a,b)=>a.k-b.k).map(o=>o.x);
+  for(const cand of order){
+    if(cand===card||cand.w===card.w) continue;
+    if(seen.some(s=>trainerTooClose(s,cand.ru))) continue;
+    seen.push(cand.ru);
+    others.push(cand.ru);
+    if(others.length===3) break;
+  }
+  if(others.length<3) return null;
+  const options=[card.ru,...others].map((text,i)=>({text,correct:i===0}));
+  for(let i=options.length-1;i>0;i--){
+    const j=Math.floor(r()*(i+1));
+    [options[i],options[j]]=[options[j],options[i]];
+  }
+  return {w:card.w,tr:card.tr,lesson:card.lesson,answer:card.ru,options};
+}
+// ОТВЕТ: что подсветить. Верный — зелёным; неверный — НАШ красным И верный
+// зелёным (слова человека). Транскрипция приходит только здесь: до ответа её
+// не показываем, иначе вопрос отвечает сам на себя.
+function trainerJudge(question,picked){
+  const right=question.options[picked]&&question.options[picked].correct;
+  return {
+    right:!!right,
+    marks:question.options.map((o,i)=>o.correct?'good':(i===picked?'bad':'')),
+    tr:question.tr||'',
+  };
+}
+// ВЕС СЛОВА: ошибочные возвращаются ЧАЩЕ (заказ человека «и возвращаем чаще»).
+// Вес — число шансов в выборке: верный ответ уменьшает его до 1, ошибка
+// поднимает до 4. Прогресс — в браузере у каждого свой; нам он не виден.
+function trainerWeight(stat){
+  const s=stat||{};
+  const wrong=+s.wrong||0, right=+s.right||0;
+  return Math.max(1,Math.min(6,1+wrong*3-Math.min(right,2)));
+}
+function trainerPick(pool,stats,rnd){
+  const r=rnd||Math.random;
+  if(!pool.length) return null;
+  const bag=[];
+  pool.forEach(card=>{
+    const n=trainerWeight((stats||{})[card.w]);
+    for(let i=0;i<n;i++) bag.push(card);
+  });
+  return bag[Math.floor(r()*bag.length)]||pool[0];
+}
+function trainerLoad(){
+  try{ return JSON.parse(localStorage.getItem(TRAINER_KEY)||'{}')||{}; }
+  catch(e){ return {}; }
+}
+function trainerSave(stats){
+  try{ localStorage.setItem(TRAINER_KEY,JSON.stringify(stats)); }catch(e){}
+}
+// ШОВ ДЛЯ ПРИБОРА, и он назван: чистые функции выставляются наружу, чтобы
+// предмет мерился прямо (сколько статей годно, один ли верный ответ, что
+// подсвечено), а не через вид. Страница от этого не меняется.
+globalThis.trainer={ru:trainerRu,pool:trainerPool,fit:trainerFit,question:trainerQuestion,
+  judge:trainerJudge,tooClose:trainerTooClose,weight:trainerWeight,
+  pick:trainerPick,words:trainerWords};
+
+// ВИД ТРЕНАЖЁРА — ТОЖЕ ЧИСТОЙ ФУНКЦИЕЙ: карточка собирается строкой, а DOM
+// только вставляет её. Поэтому прибор мерит то, что УВИДИТ человек (есть ли
+// транскрипция до ответа, что подсвечено), а не моё описание этого.
+function trainerCardHTML(q,judged){
+  if(!q) return '<div class="none">Вопросов нет: в словаре не нашлось слов, '
+    +'к которым есть три непохожих перевода.</div>';
+  const marks=judged?judged.marks:null;
+  const opts=q.options.map((o,i)=>{
+    const m=marks?(marks[i]||''):'';
+    return '<button class="opt'+(m?' '+m:'')+'" data-opt="'+i+'"'
+      +(marks?' disabled':'')+'>'+esc(o.text)+'</button>';
+  }).join('');
+  // ТРАНСКРИПЦИЯ ТОЛЬКО ПОСЛЕ ОТВЕТА (слова человека): до ответа она отвечала
+  // бы за него сама.
+  const tr=(judged&&q.tr)?('<div class="tr trans">['+esc(q.tr)+']</div>'):'';
+  const lesson=q.lesson?('<span class="tr"> · урок '+esc(q.lesson)+'</span>'):'';
+  const next=judged?('<button class="next" data-next="1">Дальше</button>'):'';
+  return '<div class="card"><div class="ask"><span class="w">'+esc(q.w)+'</span>'
+    +lesson+'</div>'+tr+'<div class="opts">'+opts+'</div>'+next+'</div>';
+}
+function trainerStatsHTML(stats,pool){
+  const s=stats||{};
+  const слов=pool.length;
+  const знакомы=Object.keys(s).filter(k=>(+(s[k]||{}).right||0)>0).length;
+  const спотыкаемся=Object.keys(s).filter(k=>(+(s[k]||{}).wrong||0)>0).length;
+  // ЧИСЛА ЧЕЛОВЕКУ — СО СВОЕЙ ЕДИНИЦЕЙ, и прогресс лежит только в его браузере:
+  // нам он не виден (условие наряда).
+  return 'Слов в тренажёре: '+слов+' · отвечали верно: '+знакомы
+    +' · спотыкались: '+спотыкаемся+'. Прогресс хранится в этом браузере.';
+}
+// DOM-слой: вкладки и один обработчик на карточку. Состояние — три поля, и они
+// названы: текущая карточка, текущий вопрос, разбор ответа.
+let trainerState={card:null,q:null,judged:null,pool:[],stats:{}};
+function trainerShow(){
+  trainerBox.innerHTML=trainerCardHTML(trainerState.q,trainerState.judged);
+  trainerFoot.textContent=trainerStatsHTML(trainerState.stats,trainerState.pool);
+}
+function trainerNext(){
+  trainerState.judged=null;
+  trainerState.card=trainerPick(trainerState.pool,trainerState.stats);
+  trainerState.q=trainerState.card?trainerQuestion(trainerState.pool,trainerState.card):null;
+  trainerShow();
+}
+function trainerStart(){
+  trainerState.pool=trainerPool(data);
+  trainerState.stats=trainerLoad();
+  trainerNext();
+}
+function trainerAnswer(i){
+  if(!trainerState.q||trainerState.judged) return;
+  const j=trainerJudge(trainerState.q,i);
+  trainerState.judged=j;
+  const key=trainerState.q.w, s=trainerState.stats[key]||{right:0,wrong:0};
+  if(j.right) s.right=(+s.right||0)+1; else s.wrong=(+s.wrong||0)+1;
+  trainerState.stats[key]=s;
+  trainerSave(trainerState.stats);
+  trainerShow();
+}
+function trainerTab(on){
+  // Поиск принадлежит словарю: в тренажёре он не нужен и прячется, чтобы его
+  // не искали глазами.
+  document.getElementById('dict').hidden=on;
+  document.getElementById('trainer').hidden=!on;
+  q.hidden=on;
+  foot.hidden=on;
+  tabDict.className=on?'tab':'tab on';
+  tabTrainer.className=on?'tab on':'tab';
+  if(on&&!trainerState.pool.length) trainerStart();
+}
+trainerBox.addEventListener('click',ev=>{
+  const o=ev.target.closest&&ev.target.closest('[data-opt]');
+  if(o){ trainerAnswer(+o.getAttribute('data-opt')); return; }
+  const n=ev.target.closest&&ev.target.closest('[data-next]');
+  if(n) trainerNext();
+});
+tabDict.addEventListener('click',()=>trainerTab(false));
+tabTrainer.addEventListener('click',()=>trainerTab(true));
+globalThis.trainer.cardHTML=trainerCardHTML;
+globalThis.trainer.statsHTML=trainerStatsHTML;
+
 q.addEventListener('input',()=>render(q.value));
 </script>
 </body>
