@@ -53,6 +53,187 @@ main{padding:0 14px 40px}
 .opt.bad{border-color:#C62828;background:#FBEAEA;color:#B71C1C}
 .next{margin-top:4px;border:1px solid var(--p);background:var(--p);color:#fff;
       border-radius:9px;padding:10px 16px;font-size:15px;cursor:pointer}
+/* ЭКЗАМЕН: ВИД — ПОДОБИЕ ОДОБРЕННОГО ЛИСТА (второй, сине-стальной).
+   Человек сказал «Новый вид очень нравицо» (05.11, через pm) о КОНКРЕТНОМ файле;
+   он лежит рядом как samples/exam_look_approved.html и правке не подлежит.
+   Прежний кремовый вид одобрен больше ничем — про него человек сказал «не как в
+   учебнике оригинале», и это решение теперь не моё.
+   Опознавательных знаков Центра и министерства нет ни одного.
+   Переносы держит CSS (white-space:pre-line), а не теги: два носителя одного
+   переноса расходятся молча. */
+#exam{--blue:#2e6ca4;--blue2:#4a7fb5;--deep:#1f4f7d;--eline:#9fbdd8;--fill:#e6eef7;
+      --green:#7aa83f;--gfill:#eef5e2;--gline:#b6cf92;--orange:#e07b22;--egrey:#7b8794;
+      /* ВЫЛЕТ ЗА ОКНО СНЯТ (находка test-1 на #532): #exam — это сам <main>,
+         и «margin:0 -14px» поверх «main{padding:0 14px}» делал элемент на 28 px
+         шире окна; на телефоне правый столбец подрезало краем. Своё поле main-а
+         обнуляем, а отрицательного не нужно вовсе: блок и так во всю ширину. */
+      background:#dfe6ee;margin:0;padding:0 0 18px;color:#17202a;max-width:100%;
+      font:14.5px/1.55 Arial,"Liberation Sans",Helvetica,sans-serif}
+#exam .page{max-width:840px;margin:16px auto 22px;background:#fff;position:relative;
+      box-shadow:0 6px 26px rgba(23,45,70,.18)}
+#exam .band{height:46px;position:relative;
+      background:linear-gradient(90deg,#7e9ec4 0%,#4a6f9c 46%,#2b4e78 100%)}
+#exam .band:after{content:"";position:absolute;left:0;right:0;bottom:-6px;height:6px;
+      background:linear-gradient(90deg,#e8a06a,#c9b3d6 40%,#9fc3dd 70%,#cfe0ee)}
+#exam .band .lvl{position:absolute;right:26px;top:7px;color:#fff;font-size:26px;
+      letter-spacing:.06em;font-weight:700;opacity:.95}
+#exam .band .lvl i{font-size:15px;font-style:normal;vertical-align:-2px}
+#exam .rail{position:absolute;left:0;top:46px;bottom:0;width:46px;
+      background:linear-gradient(180deg,#eaf1f8,#cfe0ee 55%,#eef4fa)}
+#exam .rail em{position:absolute;left:13px;top:46%;width:20px;height:20px;border-radius:50%;
+      background:#8fb0cf;color:#fff;font-style:normal;font-size:10px;text-align:center;
+      line-height:20px}
+#exam .rail span{position:absolute;top:44px;left:-16px;width:78px;text-align:center;
+      transform:rotate(-90deg);font-size:9px;letter-spacing:.3em;color:#6d8aa6}
+#exam .inner{padding:26px 40px 34px 70px}
+#exam .cover{padding:52px 0 70px;text-align:center}
+#exam .cover .big{color:var(--blue);font-size:30px;letter-spacing:.18em;line-height:1.5;
+      font-weight:700}
+#exam .cover .units{margin-top:34px;display:inline-block;background:#cfe0a8;color:#fff;
+      font-size:26px;letter-spacing:.08em;font-weight:700;padding:18px 26px;border-radius:4px}
+#exam .cover .dur{margin-top:26px;color:var(--blue);font-size:12px;letter-spacing:.24em}
+#exam .cover .pass{margin-top:10px;color:var(--egrey);font-size:12.5px;letter-spacing:.04em}
+#exam .cover .pass b{color:var(--deep)}
+#exam .cover .who{margin:26px auto 0;max-width:460px;color:var(--egrey);font-size:12px;
+      line-height:1.6}
+#exam .skill{color:var(--blue);font-size:13px;letter-spacing:.3em;font-weight:700}
+#exam .pnum{color:var(--deep);font-size:12px;letter-spacing:.26em;font-weight:700;margin-top:12px}
+#exam .pnum span{color:var(--egrey);letter-spacing:.12em;font-weight:400}
+#exam .rubric{margin:14px 0 0;max-width:720px}
+#exam .rubric .el{margin:0;text-align:justify;font-size:13.5px}
+#exam .rubric .el::first-letter{float:left;font-size:40px;line-height:.86;padding:2px 9px 0 0;
+      color:#9cc0de;font-weight:700}
+#exam .rubric .ru{margin:8px 0 0;color:var(--egrey);font-size:12.5px;font-style:italic}
+#exam .notice{display:flex;justify-content:flex-end;gap:12px;margin:16px 0 20px}
+#exam .notice .lbl{color:var(--blue);font-weight:700;font-size:11px;letter-spacing:.14em;
+      padding-top:2px}
+#exam .notice .txt{border-left:1px solid var(--eline);padding-left:12px;max-width:330px;
+      color:var(--blue2);font-size:12px;text-align:justify}
+#exam .ads{display:grid;grid-template-columns:1fr 1fr;gap:16px 26px;margin:6px 0 26px}
+#exam .ad{display:flex;align-items:stretch}
+#exam .ad .tab{width:26px;border-radius:7px 0 0 7px;color:#fff;font-weight:700;font-size:15px;
+      display:flex;align-items:center;justify-content:center;
+      background:linear-gradient(180deg,#6f97c2,#4a7097)}
+#exam .ad .card{flex:1;border:1px solid var(--eline);border-left:0;border-radius:0 9px 9px 0;
+      padding:11px 14px;font-size:12.8px;text-align:center;line-height:1.5;white-space:pre-line}
+#exam .ad.ex .tab{background:linear-gradient(180deg,#a6cd77,#7aa83f)}
+#exam .ad.ex .card{border-color:var(--gline)}
+#exam .tfhead{display:flex;justify-content:flex-end;gap:6px;margin-bottom:5px}
+#exam .tfhead div{width:92px;text-align:center;color:#fff;font-size:10.5px;letter-spacing:.16em;
+      padding:4px 0;border-radius:4px 4px 0 0;background:linear-gradient(180deg,#6f97c2,#4a7097)}
+#exam .tfrow{display:flex;align-items:stretch;gap:6px;margin-bottom:6px}
+#exam .tfrow .num{width:34px;border:1px solid var(--eline);border-radius:6px;display:flex;
+      align-items:center;justify-content:center;font-weight:700;color:var(--deep)}
+#exam .tfrow .stripe{width:5px;border-radius:3px}
+#exam .tfrow .stripe.s1{background:#e79ab4}
+#exam .tfrow .stripe.s2{background:#a6cd77}
+#exam .tfrow .claim{flex:1;border:1px solid var(--eline);border-radius:6px;padding:9px 12px;
+      font-size:12.8px;display:flex;align-items:center}
+#exam .tfrow .ans{width:92px;padding-bottom:9px;min-height:42px;border:1px solid var(--eline);
+      border-radius:6px;background:var(--fill);position:relative;display:flex;
+      align-items:center;justify-content:center;cursor:pointer}
+#exam .tfrow.ex .claim{background:#f4f8fc}
+#exam .tfrow.ex .ans{cursor:default}
+#exam .ans.pick{background:#cfe0a8}
+#exam .tick{color:var(--deep);font-size:17px}
+#exam .pill{position:absolute;bottom:0;left:0;right:0;background:#3d4a57;color:#fff;
+      font-size:7px;letter-spacing:.12em;text-align:center;padding:2px 0}
+#exam .letter{border:1px solid var(--eline);border-radius:8px;background:#fbfdff;
+      padding:16px 20px;margin:6px 0 22px;font-size:13px;white-space:pre-line;line-height:1.65}
+#exam .two{display:grid;grid-template-columns:1.2fr 1fr;gap:24px;align-items:start}
+#exam .thead{color:#fff;font-size:10.5px;letter-spacing:.2em;text-align:center;padding:6px 0;
+      border-radius:5px 5px 0 0;margin-bottom:6px}
+#exam .thead.blue{background:linear-gradient(180deg,#6f97c2,#3f6a97)}
+#exam .thead.green{background:linear-gradient(180deg,#a6cd77,#6f9c3a)}
+#exam .mrow{display:flex;gap:6px;margin-bottom:6px;align-items:stretch}
+#exam .mrow .num{width:52px;border:1px solid var(--eline);border-radius:6px;display:flex;
+      align-items:center;justify-content:center;font-weight:700;color:var(--deep);
+      position:relative;background:#f4f8fc;padding-bottom:9px;min-height:40px}
+#exam .mrow .txt{flex:1;border:1px solid var(--eline);border-radius:6px;padding:9px 12px;
+      font-size:12.8px;display:flex;align-items:center}
+#exam .mrow .slot{width:54px;padding-bottom:9px;min-height:40px;border:1px solid var(--gline);
+      border-radius:6px;background:var(--gfill);position:relative;display:flex;
+      align-items:center;justify-content:center;font-weight:700;color:var(--deep);
+      cursor:pointer}
+#exam .mrow.ex .txt{background:#f4f8fc}
+#exam .mrow.on .txt{border-color:var(--orange);box-shadow:0 0 0 1px var(--orange)}
+#exam .mrow.pick .num,#exam .mrow .slot.pick{background:#cfe0a8}
+#exam .dials{display:grid;grid-template-columns:1fr 1fr;gap:26px 28px;margin:6px 0 26px}
+#exam .bubble{position:relative;border-radius:14px;padding:26px 16px 14px}
+#exam .bubble.b1{background:#dde6f2}
+#exam .bubble.b2{background:#e7dff0}
+#exam .bubble.b3{background:#dcebcf}
+#exam .bubble .dtab{position:absolute;top:-10px;left:14px;background:#8aa6c6;color:#fff;
+      font-size:8.5px;letter-spacing:.16em;padding:3px 10px;border-radius:9px}
+#exam .bubble.b2 .dtab{background:#a391bd}
+#exam .bubble.b3 .dtab{background:#9cbb73}
+#exam .bubble .body{font-size:12.6px;color:#23405c;white-space:pre-line}
+#exam .bubble .tail{position:absolute;left:30px;bottom:-15px;width:30px;height:17px;
+      clip-path:polygon(0 0,100% 0,14% 100%)}
+#exam .bubble.b1 .tail{background:#dde6f2}
+#exam .bubble.b2 .tail{background:#e7dff0}
+#exam .bubble.b3 .tail{background:#dcebcf}
+#exam .q{margin:0 0 15px}
+#exam .qt{font-size:13.2px;font-weight:700;color:#21364b;position:relative}
+#exam .qt .n{display:inline-block;width:20px;color:var(--deep)}
+#exam .q.ex .qt .pill{position:static;display:inline-block;padding:2px 7px;margin-left:8px;
+      border-radius:3px}
+#exam .opts{list-style:none;margin:6px 0 0;padding:0 0 0 20px}
+#exam .opts li{font-size:13px;padding:3px 0;display:flex;align-items:center;gap:7px}
+#exam .gl{display:inline-block;width:16px;color:var(--blue);font-weight:700}
+#exam .box{width:15px;height:15px;border:1px solid var(--eline);border-radius:3px;
+      background:var(--fill);flex:none;padding:0;cursor:pointer}
+#exam .box.pick{background:#cfe0a8;border-color:var(--green)}
+#exam .gaptext{border:1px solid var(--eline);border-radius:8px;background:#fbfdff;
+      padding:18px 20px;font-size:13px;line-height:2.5;margin:6px 0 22px;text-align:justify}
+#exam .gap{display:inline-block;white-space:nowrap;margin:0 3px;cursor:pointer}
+#exam .gap i{display:inline-block;width:34px;border-bottom:1px solid #4d6b88;vertical-align:4px}
+#exam .gap b{color:var(--orange);font-size:14px;padding:0 5px}
+#exam .gap.on b{background:#ffe9d2;border-radius:3px}
+#exam .bank{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}
+#exam .bw{display:flex;gap:6px}
+#exam .bw .txt{flex:1;border:1px solid var(--eline);border-radius:6px;padding:8px 12px;
+      font-size:12.8px;cursor:pointer}
+#exam .bw .slot{width:56px;padding-bottom:9px;min-height:36px;border:1px solid var(--gline);
+      border-radius:6px;background:var(--gfill);position:relative;display:flex;
+      align-items:center;justify-content:center;font-weight:700;color:var(--deep)}
+#exam .bw.ex .txt{background:#f4f8fc;cursor:default}
+#exam .bw .slot.pick{background:#cfe0a8}
+#exam .turn{text-align:right;color:var(--blue);font-size:9.5px;letter-spacing:.2em;
+      border-top:1px solid #dde6ee;margin-top:22px;padding-top:8px}
+#exam .end{text-align:center;color:var(--deep);font-size:10px;letter-spacing:.16em;
+      border-top:1px solid #dde6ee;margin-top:26px;padding-top:14px;line-height:1.8}
+#exam .extimer{position:sticky;top:0;z-index:4;background:#2b4e78;color:#fff;
+      padding:8px 14px;display:flex;justify-content:space-between;align-items:center;gap:10px;
+      font-size:11px;letter-spacing:.18em;text-transform:uppercase}
+#exam .extimer b{font-size:19px;letter-spacing:.04em;font-variant-numeric:tabular-nums}
+#exam .exlow b{color:#ffd0a8}
+#exam .exbtn{border:1px solid #fff;background:transparent;color:#fff;padding:6px 14px;
+      font:inherit;font-size:11px;letter-spacing:.14em;cursor:pointer}
+#exam .exscore{max-width:840px;margin:16px auto;background:#fff;padding:18px 22px;
+      box-shadow:0 6px 26px rgba(23,45,70,.18)}
+#exam .exscore .big{color:var(--deep);font-size:24px;font-weight:700}
+#exam .exrow{font-size:12.8px;margin:4px 0;color:#21364b}
+#exam .exlab{font-size:10px;letter-spacing:.16em;color:var(--egrey)}
+#exam .exgood{color:#49721f}
+#exam .exbad{color:#b4472a}
+#examFoot{color:#5d6b7a;font-size:12px;line-height:1.6}
+@media(max-width:760px){#exam .ads,#exam .dials,#exam .bank,#exam .two{grid-template-columns:1fr}
+      #exam .inner{padding:18px 14px 24px 54px}
+      /* СТРОКА «ВЕРНО/НЕВЕРНО» НА ТЕЛЕФОНЕ (находка test-1 на #532): две клетки
+         по 92 px оставляли утверждению 94 px, и строка вырастала до 218 px.
+         Теперь утверждение занимает всю ширину, клетки уходят под него и делят
+         её поровну; ярлыки ΣΩΣΤΟ/ΛΑΘΟΣ переезжают В САМИ КЛЕТКИ, потому что
+         шапка над ними на этой ширине стоит не над теми столбцами. */
+      #exam .tfrow{flex-wrap:wrap}
+      #exam .tfrow .num{order:1}
+      #exam .tfrow .stripe{order:2}
+      #exam .tfrow .claim{order:3;flex:1 1 100%;margin-top:6px}
+      #exam .tfrow .ans{order:4;flex:1 1 0;width:auto;min-height:38px;margin-top:6px}
+      #exam .tfrow .ans:before{content:attr(data-lab);position:absolute;top:3px;left:0;
+            right:0;font-size:8px;letter-spacing:.14em;color:var(--blue)}
+      #exam .tfhead{display:none}
+      #exam .mrow .txt,#exam .bw .txt{font-size:12px}}
 footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--line)}
 </style>
 </head>
@@ -70,11 +251,17 @@ footer{color:var(--g);font-size:12px;padding:14px;border-top:1px solid var(--lin
 <div class="tabs">
   <button id="tabDict" class="tab on">Словарь</button>
   <button id="tabTrainer" class="tab">Тренажёр</button>
+  <!-- ЛИСТА НЕТ -> ВКЛАДКИ НЕТ, и это отдельная ветка в коде, а не случайная
+       пустота: пустой экзамен не рисуем (условие наряда). Кнопка прячется до
+       того, как лист доехал и разобрался. -->
+  <button id="tabExam" class="tab" hidden>Экзамен</button>
 </div>
 <main id="dict"><div id="out"></div></main>
 <main id="trainer" hidden><div id="trainerBox"></div></main>
+<main id="exam" hidden><div id="examBox"></div></main>
 <footer id="foot"></footer>
 <footer id="trainerFoot"></footer>
+<footer id="examFoot"></footer>
 <!-- СТРАНИЦА НАЗЫВАЕТ СЕБЯ, и это отдельная строка, а не часть «найдено».
 
      Наряд pm по живому случаю (23.10): человек открыл словарик из телеграма и
@@ -94,6 +281,9 @@ const out=document.getElementById('out'), q=document.getElementById('q'),
       trainerFoot=document.getElementById('trainerFoot'),
       tabDict=document.getElementById('tabDict'),
       tabTrainer=document.getElementById('tabTrainer'),
+      tabExam=document.getElementById('tabExam'),
+      examBox=document.getElementById('examBox'),
+      examFoot=document.getElementById('examFoot'),
       меня=document.getElementById('self');
 let data=null;
 try{ if(window.Telegram&&Telegram.WebApp){Telegram.WebApp.ready();Telegram.WebApp.expand();} }catch(e){}
@@ -797,27 +987,580 @@ function trainerAnswer(i){
   trainerSave(trainerState.stats);
   trainerShow();
 }
-function trainerTab(on){
-  // Поиск принадлежит словарю: в тренажёре он не нужен и прячется, чтобы его
-  // не искали глазами.
-  document.getElementById('dict').hidden=on;
-  document.getElementById('trainer').hidden=!on;
-  q.hidden=on;
-  foot.hidden=on;
-  tabDict.className=on?'tab':'tab on';
-  tabTrainer.className=on?'tab on':'tab';
-  if(on&&!trainerState.pool.length) trainerStart();
+function pageTab(name){
+  // ТРИ ВКЛАДКИ НЕ ВЫРАЖАЮТСЯ БИНАРНЫМ ПЕРЕКЛЮЧАТЕЛЕМ, и прежний trainerTab(on)
+  // пришлось заменить ИМЕНЕМ вкладки: с третьей «не-тренажёр» перестал означать
+  // «словарь». Поиск и подвал словаря принадлежат словарю и прячутся вне его,
+  // чтобы их не искали глазами.
+  document.getElementById('dict').hidden=name!=='dict';
+  document.getElementById('trainer').hidden=name!=='trainer';
+  document.getElementById('exam').hidden=name!=='exam';
+  q.hidden=name!=='dict';
+  foot.hidden=name!=='dict';
+  trainerFoot.hidden=name!=='trainer';
+  examFoot.hidden=name!=='exam';
+  tabDict.className=name==='dict'?'tab on':'tab';
+  tabTrainer.className=name==='trainer'?'tab on':'tab';
+  tabExam.className=name==='exam'?'tab on':'tab';
+  if(name==='trainer'&&!trainerState.pool.length) trainerStart();
+  if(name==='exam'&&!examState.started) examStart();
 }
+function trainerTab(on){ pageTab(on?'trainer':'dict'); }
 trainerBox.addEventListener('click',ev=>{
   const o=ev.target.closest&&ev.target.closest('[data-opt]');
   if(o){ trainerAnswer(+o.getAttribute('data-opt')); return; }
   const n=ev.target.closest&&ev.target.closest('[data-next]');
   if(n) trainerNext();
 });
-tabDict.addEventListener('click',()=>trainerTab(false));
-tabTrainer.addEventListener('click',()=>trainerTab(true));
+tabDict.addEventListener('click',()=>pageTab('dict'));
+tabTrainer.addEventListener('click',()=>pageTab('trainer'));
+tabExam.addEventListener('click',()=>pageTab('exam'));
 globalThis.trainer.cardHTML=trainerCardHTML;
 globalThis.trainer.statsHTML=trainerStatsHTML;
+
+// ЭКЗАМЕН НА СТРАНИЦЕ: ЧИСТЫЕ ФУНКЦИИ, DOM ТОЛЬКО ВСТАВЛЯЕТ ИХ СТРОКУ.
+//
+// Вид — подобие ОДОБРЕННОГО человеком файла (samples/exam_look_approved.html):
+// белая страница, рубленый шрифт, сине-стальная гамма, каждая часть — своя
+// страница с полосой и боковой шиной, объявления карточками с ярлыком номера,
+// «верно/неверно» построчными карточками, диалоги облачками речи, пропуски
+// подчёркиванием с оранжевым номером. Решения не мои: одобрено то, что он видел.
+//
+// Поведение — как в боте: таймер 30 минут виден всё время, верность во время
+// экзамена НЕ подсвечивается, в конце балл по частям, «сдал/не сдал» по
+// pass_units ИЗ ЛИСТА, разбор ошибок, незаполненное считается неверным.
+const EXAM_LETTERS = ['α', 'β', 'γ', 'δ', 'ε', 'ζ', 'η', 'θ', 'ι', 'κ'];
+// Ярлыки ответов — ОДНИМ ПЕРЕЧНЕМ: их читают и шапка столбцов, и сами клетки
+// (на телефонной ширине шапка прячется, а ярлык обязан остаться при клетке).
+// Два носителя одного имени разошлись бы молча — у нас это уже случалось.
+const EXAM_TF_LABELS = ['ΣΩΣΤΟ', 'ΛΑΘΟΣ'];
+function examKey(part, id){ return part + ':' + id; }
+function examSlots(sheet){
+  const out = [];
+  ((sheet && sheet.parts) || []).forEach(p => {
+    (p.items || []).forEach(it => {
+      const id = (p.kind === 'gaps') ? it.gap : it.id;
+      out.push({ part: p.n, kind: p.kind, id: id, key: examKey(p.n, id),
+                 right: examRight(p, it), text_id: it.text_id || '' });
+    });
+  });
+  return out;
+}
+function examRight(part, it){
+  if(part.kind === 'truefalse') return it.answer === true ? 'true' : 'false';
+  if(part.kind === 'choice') return String(it.answer);
+  if(part.kind === 'match') return String(it.right || '');
+  return String(it.word || '');
+}
+// ПОРЯДОК ВТОРОГО СТОЛБЦА И ЗАПАСА СЛОВ — ПЕРЕМЕШАН, И ЭТО НЕ ВИД, А ПРЕДМЕТ.
+//
+// Нашёл человек: в листе ответ стоял напротив своего вопроса, и задание решалось
+// без чтения.
+//
+// ЗЕРНО — ОТ ПОПЫТКИ, А НЕ ОТ ЛИСТА, и это отличие от бумажного показа pm. На
+// бумаге порядок закреплён нарочно: один лист выглядит всегда одинаково. На
+// живой вкладке идёт ПОПЫТКА, и порядок обязан меняться между попытками —
+// иначе его выучивают. Внутри попытки зерно не меняется: иначе варианты
+// прыгали бы при каждом возврате к заданию.
+//
+// «ПЕРЕМЕШАНО» И «РАЗВЕДЕНО» — РАЗНЫЕ ВЕЩИ (замер dev-2 через pm: при обычном
+// shuffle совпадения по месту вылезали в 118 случаях из 200 семян), и одной
+// разводки тоже мало: сдвиг разводит, но порядок у всех попыток один. Поэтому
+// здесь и то, и другое: перемешивание зерном попытки плюс разводка совпадений.
+function examSeed(sheet, part){
+  // Зерно листа — только для показа без попытки (прибор, предпросмотр).
+  const s = String((sheet && sheet.made_at) || '') + '|' + String(part) + '|'
+    + String((sheet && sheet.units) || '');
+  let h = 2166136261;
+  for(let i = 0; i < s.length; i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); }
+  return (h >>> 0) || 1;
+}
+function examMix(seed, part){
+  // Зерно ЧАСТИ выводится из зерна попытки: одно число на попытку, разные
+  // порядки в разных заданиях.
+  return ((Math.imul((seed || 1) >>> 0, 2654435761) ^ Math.imul(part + 1, 40503)) >>> 0) || 1;
+}
+function examShuffle(list, seed){
+  const out = list.slice();
+  let s = seed || 1;
+  const rnd = () => (s = (Math.imul(s, 1103515245) + 12345) >>> 0) / 4294967296;
+  for(let i = out.length - 1; i > 0; i--){
+    const j = Math.floor(rnd() * (i + 1));
+    const t = out[i]; out[i] = out[j]; out[j] = t;
+  }
+  return out;
+}
+function examArrange(list, fixed, seed){
+  // `fixed[i]` — строка, которая НЕ должна встать на место i. Перемешиваем, а
+  // затем разводим совпадения обменом с соседом: так порядок остаётся
+  // детерминированным и ни один ответ не стоит против своего вопроса.
+  let out = examShuffle(list, seed);
+  for(let i = 0; i < out.length; i++){
+    if(i < fixed.length && out[i] === fixed[i]){
+      const j = (i + 1) % out.length;
+      const t = out[i]; out[i] = out[j]; out[j] = t;
+    }
+  }
+  // Второй проход: обмен мог вернуть совпадение на предыдущее место.
+  for(let i = 0; i < out.length; i++){
+    if(i < fixed.length && out[i] === fixed[i]){
+      const j = (i + 2) % out.length;
+      const t = out[i]; out[i] = out[j]; out[j] = t;
+    }
+  }
+  return out;
+}
+function examRights(p, seed){
+  const own = (p.items || []).map(it => String(it.right || ''));
+  const all = own.concat((p.extra_right || []).map(String));
+  return examArrange(all, own, examMix(seed, p.n));
+}
+function examOptions(it, part, seed){
+  // ВАРИАНТЫ ПЕРЕМЕШИВАЮТСЯ ПРИ ПОКАЗЕ, И МЕСТО ВЕРНОГО ПЕРЕСЧИТЫВАЕТСЯ.
+  //
+  // Находка pm на трёх живых листах: заполнитель ставил верный ответ почти
+  // всегда на одно место (в третьем листе — β во всех шести вопросах), и
+  // «всегда второй» давало 6 из 6 без знания языка. Сторож ловит это у листа;
+  // здесь — вторая половина защиты: даже кривой лист на вкладке не даёт
+  // выигрышной догадки.
+  //
+  // Возвращаем порядок показа: массив исходных индексов. Место верного ответа
+  // считается из него же — второго носителя правды о верном ответе нет.
+  const n = (it.options || []).length;
+  const idx = [];
+  for(let i = 0; i < n; i++) idx.push(i);
+  return examShuffle(idx, examMix(seed, part * 31 + (parseInt(it.id, 10) || 0) + 7));
+}
+function examRightPlace(it, part, seed){
+  const order = examOptions(it, part, seed);
+  return order.indexOf(typeof it.answer === 'number' ? it.answer : -1);
+}
+function examWords(p, seed){
+  const own = (p.items || []).map(it => String(it.word || ''));
+  const all = own.concat((p.extra_words || []).map(String));
+  return examArrange(all, own, examMix(seed, p.n) ^ 0x5f5f);
+}
+function examPlaces(sheet, seed){
+  // Места верного ответа ПРИ ПОКАЗЕ: сколько раз каждое место оказалось
+  // верным. Прибор гоняет это на многих зёрнах — «всегда β» обязано исчезнуть
+  // даже на листе, где оно есть.
+  const out = {};
+  ((sheet && sheet.parts) || []).forEach(p => {
+    if(p.kind !== 'choice') return;
+    (p.items || []).forEach(it => {
+      const place = examRightPlace(it, p.n, seed);
+      out[place] = (out[place] || 0) + 1;
+    });
+  });
+  return out;
+}
+function examInPlace(sheet, seed){
+  // Замер к условию человека: сколько строк стоит на месте своего вопроса.
+  // Прибор гоняет его на МНОГИХ зёрнах: ноль на одном зерне ничего не
+  // утверждает (мера pm, усиленная изломом dev-2).
+  let n = 0;
+  ((sheet && sheet.parts) || []).forEach(p => {
+    if(p.kind === 'match'){
+      const order = examRights(p, seed);
+      (p.items || []).forEach((it, i) => { if(order[i] === String(it.right || '')) n++; });
+    }
+    if(p.kind === 'gaps'){
+      const order = examWords(p, seed);
+      (p.items || []).forEach((it, i) => { if(order[i] === String(it.word || '')) n++; });
+    }
+  });
+  return n;
+}
+function examKeepsAll(p, seed){
+  // Лишние строки не пропали и верные все на месте: перемешивание не вправе
+  // терять содержание. Отвечает парой «сколько строк · все ли верные тут».
+  const isMatch = p.kind === 'match';
+  const own = (p.items || []).map(it => String(isMatch ? (it.right || '') : (it.word || '')));
+  const extra = ((isMatch ? p.extra_right : p.extra_words) || []).map(String);
+  const order = isMatch ? examRights(p, seed) : examWords(p, seed);
+  const bag = order.slice().sort();
+  const want = own.concat(extra).sort();
+  return { rows: order.length, want: own.length + extra.length,
+           same: bag.join('\u0001') === want.join('\u0001') };
+}
+function examScore(sheet, answers){
+  const a = answers || {};
+  const byPart = [], wrong = [];
+  let got = 0, units = 0;
+  ((sheet && sheet.parts) || []).forEach(p => {
+    let mine = 0;
+    (p.items || []).forEach(it => {
+      const id = (p.kind === 'gaps') ? it.gap : it.id;
+      const key = examKey(p.n, id);
+      const right = examRight(p, it);
+      const picked = (key in a) ? String(a[key]) : '';
+      if(picked === right){ mine++; }
+      else {
+        // НЕОТВЕЧЕННОЕ СЧИТАЕТСЯ НЕВЕРНЫМ (условие наряда), и в разборе это
+        // видно словами: «не отвечено» — не то же, что «ошибся».
+        wrong.push({ part: p.n, kind: p.kind, id: id, picked: picked, right: right,
+                     text_id: it.text_id || '', q: it.q || it.claim || it.left || '' });
+      }
+    });
+    byPart.push({ n: p.n, kind: p.kind, got: mine, units: p.units || (p.items || []).length });
+    got += mine;
+    units += (p.units || (p.items || []).length);
+  });
+  const need = (sheet && typeof sheet.pass_units === 'number') ? sheet.pass_units : null;
+  return { got: got, units: units, byPart: byPart, wrong: wrong,
+           pass_units: need, passed: need === null ? null : got >= need };
+}
+function examLeft(startedMs, nowMs, minutes){
+  const all = (minutes || 0) * 60;
+  const spent = Math.floor(((nowMs || 0) - (startedMs || 0)) / 1000);
+  return Math.max(0, all - Math.max(0, spent));
+}
+function examClock(sec){
+  const s = Math.max(0, Math.floor(sec || 0));
+  return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2);
+}
+function examWarn(p){
+  // Врезка ΠΡΟΣΕΞΤΕ: числа ИЗ ЛИСТА, а не вписаны. Лист с другим числом лишних
+  // строк скажет о себе сам.
+  const n = (p.items || []).length;
+  if(p.kind === 'match')
+    return 'ответов ' + n + ' без примера; концовок во втором столбце лишних — '
+      + (p.extra_right || []).length + '.';
+  if(p.kind === 'gaps')
+    return 'вписать нужно ' + n + ' номеров без примера; лишних слов — '
+      + (p.extra_words || []).length + '.';
+  if(p.kind === 'choice')
+    return 'каждый вопрос имеет только один (1) верный ответ; всего ' + n + '.';
+  return 'нужно отметить всего ' + n + ' клеток без примера.';
+}
+function examMark(picked, right, show){
+  // ПОДСВЕТКА ТОЛЬКО В РАЗБОРЕ: во время экзамена show=false, и класс не
+  // появляется вовсе. Это главное условие наряда, и держит его одна функция.
+  if(!show) return '';
+  if(picked === '') return ' exbad';
+  return picked === right ? ' exgood' : ' exbad';
+}
+// ПОМЕТОК ОБ АВТОРСТВЕ В ТЕКСТЕ ДЛЯ ЧИТАТЕЛЯ НЕТ НИГДЕ — правило человека, и
+// оно сильнее моего прежнего решения. Строка «содержание собрано агентом» с
+// обложки снята: `made_by` решает, ПОЕДЕТ ли лист наружу (предмет сторожа
+// «ЛИСТ: ПРИТЯЗАНИЕ НА ПРОИСХОЖДЕНИЕ»), а не что прочтёт сдающий. Честность об
+// авторстве держится предметом, ровно для того он и заведён.
+//
+// Условие review-1 (#531) «сказать человеку строкой» было верным, пока предмета
+// не существовало: тогда поле внутри json не читал никто. Теперь читает сторож,
+// и писать это читателю больше не нужно — а по правилу человека и нельзя.
+function examPageHTML(num, inner, last){
+  return '<div class="page"><div class="band"><div class="lvl">A<i>2</i></div></div>'
+    + '<div class="rail"><span>ΕΠΙΠΕΔΟ A2</span><em>' + num + '</em></div>'
+    + '<div class="inner">' + inner
+    + (last ? '<div class="end">ΤΕΛΟΣ ΤΗΣ ΕΞΕΤΑΣΗΣ ΣΤΗΝ ΚΑΤΑΝΟΗΣΗ ΓΡΑΠΤΟΥ ΛΟΓΟΥ</div>'
+            : '<p class="turn">ΓΥΡΙΣΤΕ ΣΕΛΙΔΑ</p>')
+    + '</div></div>';
+}
+function examCoverHTML(sheet){
+  const parts = (sheet.parts || []).map(p => p.units).join(' + ');
+  return '<div class="cover"><div class="big">ΚΑΤΑΝΟΗΣΗ<br>Γ Ρ Α Π Τ Ο Υ<br>Λ Ο Γ Ο Υ</div>'
+    + '<div class="units">' + esc(String(sheet.units || 0)) + ' ΜΟΝΑΔΕΣ</div>'
+    + '<div class="dur">ΔΙΑΡΚΕΙΑ ΕΞΕΤΑΣΗΣ ' + esc(String(sheet.minutes || 0))
+    + ' ΛΕΠΤΑ</div>'
+    + '<div class="pass">порог <b>' + esc(String(sheet.pass_units || 0)) + '</b> из <b>'
+    + esc(String(sheet.units || 0)) + '</b> · ' + esc(String((sheet.parts || []).length))
+    + ' задания ' + esc(parts) + '</div>'
+    + '<div class="who">Пробный лист нашего словарика: задания собраны по формату '
+    + 'официальных образцов уровня ' + esc(sheet.level || '') + ', тексты — из слов '
+    + 'нашего словаря. Это не официальная экзаменационная тетрадь и не документ.'
+    + '</div></div>';
+}
+function examHeadHTML(p){
+  return '<div class="skill">ΚΑΤΑΝΟΗΣΗ ΓΡΑΠΤΟΥ ΛΟΓΟΥ</div>'
+    + '<div class="pnum">ΕΡΩΤΗΜΑ ' + esc(String(p.n)) + ' <span>('
+    + esc(String(p.units)) + ' ΜΟΝΑΔΕΣ)</span></div>'
+    + '<div class="rubric"><p class="el">' + esc(p.rubric_el || '') + '</p>'
+    + '<p class="ru">' + esc(p.rubric_ru || '') + '</p></div>'
+    + '<div class="notice"><div class="lbl">ΠΡΟΣΕΞΤΕ</div><div class="txt">'
+    + esc(examWarn(p)) + '</div></div>';
+}
+function examTFHTML(p, answers, show){
+  const a = answers || {};
+  const ex = p.example || {};
+  const ads = (p.texts || []).map(t => '<div class="ad'
+    + (String(t.id) === String(ex.text_id) ? ' ex' : '') + '"><div class="tab">'
+    + esc(String(t.id)) + '</div><div class="card">' + esc(t.body || '')
+    + '</div></div>').join('');
+  // ПЛАШКА ΠΑΡΑΔΕΙΓΜΑ ИДЁТ В ТУ ЖЕ КЛЕТКУ, ЧТО И ГАЛОЧКА.
+  //
+  // Находка test-1 на живом листе: плашка была прибита к ПЕРВОЙ клетке, а
+  // галочка шла в клетку ответа. Пока пример был «верно», они совпадали и
+  // беды не было видно; у листа живой проводки пример «неверно» — галочка в
+  // ΛΑΘΟΣ, плашка под пустой ΣΩΣΤΟ, и это читается как подсказка не туда.
+  // Именно пример учит человека отвечать, поэтому место у них одно.
+  const exYes = ex.answer === true;
+  const exCell = (v, i) => '<div class="ans" data-lab="' + EXAM_TF_LABELS[i] + '">'
+    + (exYes === v ? '<span class="tick">✓</span><div class="pill">ΠΑΡΑΔΕΙΓΜΑ</div>' : '')
+    + '</div>';
+  const exRow = '<div class="tfrow ex"><div class="num">0</div>'
+    + '<div class="stripe s1"></div><div class="claim">' + esc(ex.claim || '') + '</div>'
+    + exCell(true, 0) + exCell(false, 1) + '</div>';
+  const rows = (p.items || []).map((it, i) => {
+    const key = examKey(p.n, it.id);
+    const picked = (key in a) ? String(a[key]) : '';
+    const right = it.answer === true ? 'true' : 'false';
+    const cell = (v, i) => '<div class="ans' + (picked === v ? ' pick' : '')
+      + '" data-lab="' + EXAM_TF_LABELS[i] + '" data-ans="' + key + '" data-val="' + v + '">'
+      + (picked === v ? '<span class="tick">✓</span>' : '') + '</div>';
+    return '<div class="tfrow"><div class="num">' + esc(String(it.id)) + '</div>'
+      + '<div class="stripe s' + (i % 2 ? '2' : '1') + '"></div>'
+      + '<div class="claim' + examMark(picked, right, show) + '" data-slot="' + key + '">'
+      + esc(it.claim || '') + '</div>' + cell('true', 0) + cell('false', 1) + '</div>';
+  }).join('');
+  return '<div class="ads">' + ads + '</div>'
+    + '<div class="tfhead">' + EXAM_TF_LABELS.map(l => '<div>' + l + '</div>').join('')
+    + '</div>' + exRow + rows;
+}
+function examMatchHTML(p, answers, show, seed, active){
+  const a = answers || {};
+  const ex = p.example || {};
+  const letter = (p.texts || [])[0] || {};
+  const order = examRights(p, seed);
+  const left = '<div><div class="thead blue">ΠΡΩΤΟΣ ΠΙΝΑΚΑΣ</div>'
+    + '<div class="mrow ex"><div class="num">0<div class="pill">ΠΑΡΑΔΕΙΓΜΑ</div></div>'
+    + '<div class="txt">' + esc(ex.left || '') + '</div></div>'
+    + (p.items || []).map(it => {
+      const key = examKey(p.n, it.id);
+      const picked = (key in a) ? String(a[key]) : '';
+      return '<div class="mrow' + (picked ? ' pick' : '')
+        + (active === key ? ' on' : '') + '" data-slot="' + key + '" data-pickleft="'
+        + key + '"><div class="num">' + esc(String(it.id)) + '</div>'
+        + '<div class="txt' + examMark(picked, String(it.right || ''), show) + '">'
+        + esc(it.left || '') + '</div></div>';
+    }).join('') + '</div>';
+  const right = '<div><div class="thead green">ΔΕΥΤΕΡΟΣ ΠΙΝΑΚΑΣ</div>'
+    + '<div class="mrow r ex"><div class="txt">' + esc(ex.right || '') + '</div>'
+    + '<div class="slot">0<div class="pill">ΠΑΡΑΔΕΙΓΜΑ</div></div></div>'
+    + order.map(r => {
+      // В клетке стоит НОМЕР вопроса, как на бумаге: сдающий видит свою работу
+      // тем же способом, каким делал бы её ручкой.
+      let mine = '';
+      (p.items || []).forEach(it => {
+        if(String(a[examKey(p.n, it.id)] || '') === r) mine = String(it.id);
+      });
+      return '<div class="mrow r"><div class="txt">' + esc(r) + '</div>'
+        + '<div class="slot' + (mine ? ' pick' : '') + '" data-right="' + esc(r)
+        + '">' + esc(mine) + '</div></div>';
+    }).join('') + '</div>';
+  return '<div class="letter">' + esc(letter.body || '') + '</div>'
+    + '<div class="two">' + left + right + '</div>';
+}
+function examChoiceHTML(p, answers, show, seed){
+  const a = answers || {};
+  const ex = p.example || {};
+  const dials = (p.texts || []).map((t, i) => '<div class="bubble b' + (i % 3 + 1) + '">'
+    + '<div class="dtab">ΔΙΑΛΟΓΟΣ ' + esc(String(t.id)) + '</div>'
+    + '<div class="body">' + esc(t.body || '') + '</div><div class="tail"></div></div>').join('');
+  const exBlock = '<div class="q ex"><div class="qt"><span class="n">0</span> '
+    + esc(ex.q || '') + '<div class="pill">ΠΑΡΑΔΕΙΓΜΑ</div></div><ol class="opts">'
+    + (ex.options || []).map((o, i) => '<li><span class="gl">' + EXAM_LETTERS[i]
+      + '</span> ' + esc(o) + (i === ex.answer ? ' <span class="tick">✓</span>' : '')
+      + '</li>').join('') + '</ol></div>';
+  const items = (p.items || []).map(it => {
+    const key = examKey(p.n, it.id);
+    const picked = (key in a) ? String(a[key]) : '';
+    // Буква ярлыка идёт по МЕСТУ показа, а значение кнопки — исходный индекс
+    // варианта: балл считается по листу, а не по тому, как мы его показали.
+    const order = examOptions(it, p.n, seed);
+    const opts = order.map((src, place) => '<li><span class="gl">'
+      + EXAM_LETTERS[place] + '</span> ' + esc((it.options || [])[src])
+      + '<button class="box' + (picked === String(src) ? ' pick' : '')
+      + '" data-ans="' + key + '" data-val="' + src + '"></button></li>').join('');
+    return '<div class="q"><div class="qt" data-slot="' + key + '"><span class="n">'
+      + esc(String(it.id)) + '</span> <span class="'
+      + examMark(picked, String(it.answer), show).trim() + '">' + esc(it.q || '')
+      + '</span></div><ol class="opts">' + opts + '</ol></div>';
+  }).join('');
+  return '<div class="dials">' + dials + '</div>' + exBlock + items;
+}
+function examGapsHTML(p, answers, show, seed, active){
+  const a = answers || {};
+  const ex = p.example || {};
+  const words = examWords(p, seed);
+  let text = esc(p.text || '');
+  text = text.replace(new RegExp('___' + ex.gap + '___', 'g'),
+    '<span class="gap"><i></i><b>' + esc(String(ex.gap)) + '</b><i></i></span>');
+  (p.items || []).forEach(it => {
+    const key = examKey(p.n, it.gap);
+    const picked = (key in a) ? String(a[key]) : '';
+    text = text.replace(new RegExp('___' + it.gap + '___', 'g'),
+      '<span class="gap' + (active === key ? ' on' : '') + examMark(picked, String(it.word || ''), show)
+      + '" data-slot="' + key + '" data-gap="' + key + '"><i></i><b>'
+      + (picked ? esc(picked) : esc(String(it.gap))) + '</b><i></i></span>');
+  });
+  const bank = words.map(w => {
+    let mine = '';
+    (p.items || []).forEach(it => {
+      if(String(a[examKey(p.n, it.gap)] || '') === w) mine = String(it.gap);
+    });
+    return '<div class="bw"><div class="txt" data-word="' + esc(w) + '">' + esc(w)
+      + '</div><div class="slot' + (mine ? ' pick' : '') + '">' + esc(mine) + '</div></div>';
+  }).join('');
+  const exWord = '<div class="bw ex"><div class="txt">' + esc(ex.word || '')
+    + '</div><div class="slot">' + esc(String(ex.gap)) + '<div class="pill">ΠΑΡΑΔΕΙΓΜΑ</div>'
+    + '</div></div>';
+  return '<div class="gaptext">' + text + '</div><div class="bank">' + exWord + bank + '</div>';
+}
+function examPartHTML(p, answers, show, seed, active){
+  const body = p.kind === 'truefalse' ? examTFHTML(p, answers, show)
+    : p.kind === 'match' ? examMatchHTML(p, answers, show, seed, active)
+    : p.kind === 'choice' ? examChoiceHTML(p, answers, show, seed)
+    : examGapsHTML(p, answers, show, seed, active);
+  return examHeadHTML(p) + body;
+}
+function examSheetHTML(sheet, answers, show, active, seed){
+  if(!sheet) return '';
+  // Зерна попытки нет (предпросмотр, прибор) — берём зерно листа: порядок тогда
+  // одинаков, и это честно названо, а не выдано за попытку.
+  const s = seed || examSeed(sheet, 0);
+  // Первая страница — обложка, дальше по странице на задание; последняя несёт
+  // ΤΕΛΟΣ вместо ΓΥΡΙΣΤΕ ΣΕΛΙΔΑ.
+  const parts = (sheet.parts || []);
+  let out = examPageHTML(1, examCoverHTML(sheet), false);
+  parts.forEach((p, i) => {
+    out += examPageHTML(i + 2, examPartHTML(p, answers, show, s, active),
+                        i === parts.length - 1);
+  });
+  return out;
+}
+function examShow(kind, value, sheet, w){
+  // Разбор ошибок показывает ОТВЕТ СЛОВАМИ, а не индексом: «γ» и «2» человек не
+  // сличит с тем, что видел на листе.
+  if(kind === 'truefalse') return value === 'true' ? 'ΣΩΣΤΟ' : 'ΛΑΘΟΣ';
+  if(kind === 'choice'){
+    const part = (sheet.parts || []).filter(p => p.n === w.part)[0] || {};
+    const it = (part.items || []).filter(x => String(x.id) === String(w.id))[0] || {};
+    const i = parseInt(value, 10);
+    const o = (it.options || [])[i];
+    return (EXAM_LETTERS[i] || '?') + ') ' + (o === undefined ? '' : o);
+  }
+  return value;
+}
+function examScoreHTML(sheet, answers){
+  const s = examScore(sheet, answers);
+  const rows = s.byPart.map(p => '<div class="exrow">ΕΡΩΤΗΜΑ ' + p.n + ': ' + p.got
+    + ' из ' + p.units + '</div>').join('');
+  const verdict = s.passed === null ? 'порог в листе не назван'
+    : (s.passed ? 'сдано' : 'не сдано') + ' (порог ' + s.pass_units + ' из ' + s.units + ')';
+  const wrong = s.wrong.map(w => '<div class="exrow">ΕΡΩΤΗΜΑ ' + w.part + ', '
+    + (w.kind === 'gaps' ? 'пропуск ' : 'вопрос ') + w.id + ': '
+    + (w.picked === '' ? '<span class="exbad">не отвечено</span>'
+       : 'ваш ответ <span class="exbad">' + esc(examShow(w.kind, w.picked, sheet, w))
+       + '</span>')
+    + ' · верно <span class="exgood">' + esc(examShow(w.kind, w.right, sheet, w)) + '</span>'
+    + (w.text_id ? ' · текст ' + esc(String(w.text_id)) : '') + '</div>').join('');
+  return '<div class="exscore"><div class="big">' + s.got + ' из ' + s.units + '</div>'
+    + '<div class="exrow">' + esc(verdict) + '</div>' + rows
+    + (wrong ? '<div class="exrow exlab">РАЗБОР ОШИБОК</div>' + wrong : '') + '</div>';
+}
+globalThis.exam = { slots: examSlots, score: examScore, left: examLeft, clock: examClock,
+                    sheetHTML: examSheetHTML, partHTML: examPartHTML,
+                    scoreHTML: examScoreHTML, warn: examWarn, right: examRight,
+                    rights: examRights, words: examWords, inPlace: examInPlace,
+                    keepsAll: examKeepsAll, seed: examSeed, mix: examMix,
+                    options: examOptions, rightPlace: examRightPlace,
+                    places: examPlaces };
+
+// ──────── DOM: состояние названо полями, и каждое отвечает за своё
+let examState = { sheet: null, answers: {}, started: 0, done: false,
+                  left: '', gap: '', tick: 0, seed: 0 };
+function examRender(){
+  if(!examState.sheet) return;
+  const show = examState.done;
+  const secs = examLeft(examState.started, Date.now(), examState.sheet.minutes);
+  const head = '<div class="extimer' + (secs <= 60 && !examState.done ? ' exlow' : '') + '">'
+    + '<span>' + (examState.done ? 'ΕΞΕΤΑΣΗ ΤΕΛΟΣ' : 'ΥΠΟΛΟΙΠΟΣ ΧΡΟΝΟΣ') + '</span>'
+    + '<b>' + examClock(secs) + '</b>'
+    + (examState.done ? '<button class="exbtn" data-exam="again">Заново</button>'
+       : '<button class="exbtn" data-exam="finish">Закончить</button>') + '</div>';
+  const active = examState.left || examState.gap;
+  examBox.innerHTML = head
+    + (examState.done ? examScoreHTML(examState.sheet, examState.answers) : '')
+    + examSheetHTML(examState.sheet, examState.answers, show, active, examState.seed);
+  const slots = examSlots(examState.sheet);
+  const answered = slots.filter(s => s.key in examState.answers).length;
+  examFoot.textContent = 'Отвечено ' + answered + ' из ' + slots.length
+    + ' · μονάδες ' + examState.sheet.units + ' · порог ' + examState.sheet.pass_units
+    + '. Незаполненное по истечении времени считается неверным.';
+}
+function examFinish(){
+  examState.done = true;
+  if(examState.tick){ clearInterval(examState.tick); examState.tick = 0; }
+  examRender();
+}
+function examStart(){
+  examState.answers = {};
+  examState.done = false;
+  examState.left = '';
+  examState.gap = '';
+  examState.started = Date.now();
+  // ЗЕРНО ПОПЫТКИ БЕРЁТСЯ ОДИН РАЗ, В НАЧАЛЕ: внутри попытки порядок не
+  // шевелится, между попытками — меняется.
+  examState.seed = ((Date.now() ^ Math.floor(Math.random() * 4294967296)) >>> 0) || 1;
+  if(examState.tick) clearInterval(examState.tick);
+  // ТАЙМЕР ВИДЕН ВСЁ ВРЕМЯ и САМ заканчивает экзамен: иначе «незаполненное
+  // считается неверным» зависело бы от того, нажмёт ли человек кнопку.
+  examState.tick = setInterval(() => {
+    if(examLeft(examState.started, Date.now(), examState.sheet.minutes) <= 0) examFinish();
+    else examRender();
+  }, 1000);
+  examRender();
+}
+examBox.addEventListener('click', ev => {
+  const t = ev.target;
+  const btn = t.closest && t.closest('[data-exam]');
+  if(btn){
+    if(btn.getAttribute('data-exam') === 'finish') examFinish(); else examStart();
+    return;
+  }
+  if(examState.done) return;   // после конца лист только читают
+  const ans = t.closest && t.closest('[data-ans]');
+  if(ans){
+    examState.answers[ans.getAttribute('data-ans')] = ans.getAttribute('data-val');
+    examRender();
+    return;
+  }
+  // Сопоставление: сперва строка слева, затем концовка справа — как ручкой на
+  // бумаге, где номер вписывают в клетку второго столбца.
+  const lrow = t.closest && t.closest('[data-pickleft]');
+  if(lrow){
+    examState.left = lrow.getAttribute('data-pickleft');
+    examState.gap = '';
+    examRender();
+    return;
+  }
+  const rcell = t.closest && t.closest('[data-right]');
+  if(rcell && examState.left){
+    examState.answers[examState.left] = rcell.getAttribute('data-right');
+    examState.left = '';
+    examRender();
+    return;
+  }
+  const gap = t.closest && t.closest('[data-gap]');
+  if(gap){ examState.gap = gap.getAttribute('data-gap'); examState.left = ''; examRender(); return; }
+  const word = t.closest && t.closest('[data-word]');
+  if(word && examState.gap){
+    examState.answers[examState.gap] = word.getAttribute('data-word');
+    examState.gap = '';
+    examRender();
+  }
+});
+// ЛИСТ БЕРЁТСЯ РЯДОМ С СТРАНИЦЕЙ, КАК dict.json. Нет листа или он не разобрался —
+// вкладки нет вовсе, и это названная ветка, а не пустой экран.
+fetch('exam_reading.json?' + Date.now()).then(r => {
+  if(!r.ok) return null;
+  return r.text().then(t => { try { return JSON.parse(t); } catch(e){ return null; } });
+}).then(sheet => {
+  if(!sheet || !Array.isArray(sheet.parts) || !sheet.parts.length) return;
+  examState.sheet = sheet;
+  tabExam.hidden = false;
+}).catch(() => {});
 
 q.addEventListener('input',()=>render(q.value));
 </script>
