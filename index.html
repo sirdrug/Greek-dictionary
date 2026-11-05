@@ -46,6 +46,7 @@ main{padding:0 14px 40px}
 .card{padding:14px 2px}
 .ask{font-size:26px;margin:6px 0 2px}
 .trans{font-size:15px;margin:0 0 6px}
+.full{font-size:13.5px;margin:0 0 8px;color:var(--ours)}
 .opts{display:grid;gap:8px;margin:10px 0}
 .opt{text-align:left;border:1px solid var(--line);background:var(--bg);
      color:var(--d);border-radius:9px;padding:11px 12px;font-size:16px;cursor:pointer}
@@ -861,6 +862,18 @@ const TRAINER_WORDS_MAX = 4;
 // ОТРЕЗ ЖИВЁТ ТОЛЬКО В ТРЕНАЖЁРЕ: в словаре на той же странице статья
 // показывается текстом автора целиком. Вариант ответа — не статья, и короткий
 // он потому, что его читают в четырёх строках подряд.
+function trainerColonOutside(t){
+  // Первое двоеточие ВНЕ скобок: внутри скобки оно принадлежит пояснению
+  // автора («(например: …)»), а не отделяет пример от перевода.
+  let depth = 0;
+  for(let i = 0; i < t.length; i++){
+    const c = t[i];
+    if(c === '(') depth++;
+    else if(c === ')') depth = Math.max(0, depth - 1);
+    else if(c === ':' && depth === 0) return i;
+  }
+  return -1;
+}
 function trainerTrim(ru){
   let t = String(ru || '').trim();
   // 1. Уровень или стрелка происхождения в начале: «(B2) — использовать»,
@@ -875,13 +888,33 @@ function trainerTrim(ru){
   if(arrow > 0) t = t.slice(0, arrow);
   // 3. Английская подсказка автора перед двоеточием: «to put: ставить, класть».
   t = t.replace(/^[A-Za-z][A-Za-z \u2019'\/-]*:\s*/, '');
+  // ДВОЕТОЧИЕ ВНУТРИ НЕЗАКРЫТОЙ СКОБКИ НЕ РЕЖЕТСЯ — механизм нашли review-1:
+  // «совсем не (например: δεν ξέρω…)» давало остаток «совсем не (например» с
+  // непарной скобкой. Он падал на знаках, то есть утечки не было, но и слова
+  // человек не получал. Теперь режем по двоеточию, ВНЕ скобок стоящему, и
+  // слово возвращается целым значением.
   // 4. Пример после двоеточия, если в нём греческий: «очень много: ευχαριστώ…».
   // Режем ТОЛЬКО если до двоеточия стоит настоящее слово (три русские буквы и
   // больше). Иначе «„б": μπαμπάς — папα» — правило чтения — превратилось бы в
   // вариант «„б"»: поймано плечом, а не рассуждением.
-  const colon = t.indexOf(':');
+  const colon = trainerColonOutside(t);
   if(colon > 0 && /[\u0370-\u03ff\u1f00-\u1fff]/.test(t.slice(colon))
      && (t.slice(0, colon).match(/[а-яёА-ЯЁ]/g) || []).length >= 3) t = t.slice(0, colon);
+  // Скобка, оставшаяся открытой после отреза, отрезается вместе со своим
+  // началом: «совсем не (например» -> «совсем не».
+  const open = t.lastIndexOf('(');
+  if(open > 0 && t.indexOf(')', open) < 0) t = t.slice(0, open).trim();
+  // 4б. СКОБКА-ПОМЕТА отрезается целиком: «они (ср.р.)» спрашивается как «они»,
+  //     «кого? (м. р.)» — как «кого?». Это та же мысль, что у довеска, только
+  //     на шаг раньше (находка review-1): помета в хвосте не делает негодным
+  //     само слово, но и в варианте ей делать нечего — человек читает слово.
+  t = t.replace(/\s*\(\s*(?:[мжср]|ср|мн|ед)\.?[^)]{0,12}\)\s*/gi,
+                (m) => TRAINER_LABEL.test(m) ? ' ' : m).trim();
+  // 4в. СКОБКА-ПРИМЕР отрезается целиком: «(например: δεν ξέρω καθόλου …)» —
+  //     пояснение автора, а не часть перевода (записка pm про «καθόλου»).
+  // «\b» здесь не годится: он считает границу по ASCII, и после кириллицы не
+  //     срабатывает — поймано плечом, скобка оставалась в варианте.
+  t = t.replace(/\s*\(\s*(?:например|напр|пример[ыа]?)\s*[:.,]?[^)]*\)\s*/gi, ' ').trim();
   // 5. Нумерация значений: «1. правда, истина 2. кстати» -> первое значение.
   const numbered = t.match(/^\s*1\.\s*(.+?)\s*2\.\s/);
   if(numbered) t = numbered[1];
@@ -899,9 +932,13 @@ function trainerWhy(ru){
   const t = trainerTrim(ru);
   if(!t.trim()) return 'перевода нет';
   if(t.indexOf('…') >= 0 || t.indexOf('...') >= 0) return 'многоточие вместо слова';
-  if(TRAINER_LABEL.test(t)) return 'грамматическая помета';
   const core = t.replace(/\([^)]*\)/g, ' ').trim();
   if(!core) return 'вне скобок не осталось ничего';
+  // ПОМЕТА СУДИТ ЯДРО, А НЕ ВЕСЬ ОСТАТОК — находка review-1, перемеренная
+  // своей рукой: помета в ХВОСТЕ не делает негодным само слово. «они (ср.р.)»
+  // спрашивается как «они», а «(м. р.)» остаётся отброшенным своим признаком —
+  // вне скобок у него не остаётся ничего. Пул 392 -> 400, потерь ноль.
+  if(TRAINER_LABEL.test(core)) return 'грамматическая помета';
   if(/[\u0370-\u03ff\u1f00-\u1fff]/.test(core)) return 'греческое в ядре';
   if(/\d/.test(core)) return 'цифры в ядре';
   if(/[—–]|\s-\s/.test(core)) return 'пример через тире';
@@ -952,7 +989,10 @@ function trainerPool(data){
         return;
       }
       at[w]=out.length;
-      out.push({w:w,ru:ru,also:[],
+      // ПОЛНЫЙ ТЕКСТ АВТОРА ЕДЕТ С КАРТОЧКОЙ: после ответа человек увидит его
+      // целиком, если усечённый отличался (наряд pm). До ответа его в разметке
+      // нет — то же правило, что у транскрипции.
+      out.push({w:w,ru:ru,full:(String(e.ru||'').trim()!==ru?String(e.ru||'').trim():''),also:[],
                 tr:String(e.tr||'').trim(),
                 lesson:(S.num&&!S.by_us)?S.num:'',
                 section:S.title_ru||S.title||''});
@@ -983,7 +1023,7 @@ function trainerQuestion(pool,card,rnd){
     const j=Math.floor(r()*(i+1));
     [options[i],options[j]]=[options[j],options[i]];
   }
-  return {w:card.w,tr:card.tr,lesson:card.lesson,answer:card.ru,options};
+  return {w:card.w,tr:card.tr,lesson:card.lesson,answer:card.ru,full:card.full||'',options};
 }
 // ОТВЕТ: что подсветить. Верный — зелёным; неверный — НАШ красным И верный
 // зелёным (слова человека). Транскрипция приходит только здесь: до ответа её
@@ -1043,10 +1083,14 @@ function trainerCardHTML(q,judged){
   // ТРАНСКРИПЦИЯ ТОЛЬКО ПОСЛЕ ОТВЕТА (слова человека): до ответа она отвечала
   // бы за него сама.
   const tr=(judged&&q.tr)?('<div class="tr trans">['+esc(q.tr)+']</div>'):'';
+  // ПОЛНЫЙ ПЕРЕВОД АВТОРА — ТОЛЬКО ПОСЛЕ ОТВЕТА И ТОЛЬКО ЕСЛИ ОТЛИЧАЛСЯ:
+  // короткое в вариантах, полное — когда ответ уже дан, и тогда отрез ничего
+  // не прячет (условие pm к границе «отрез живёт только в тренажёре»).
+  const full=(judged&&q.full)?('<div class="tr full">у автора: '+esc(q.full)+'</div>'):'';
   const lesson=q.lesson?('<span class="tr"> · урок '+esc(q.lesson)+'</span>'):'';
   const next=judged?('<button class="next" data-next="1">Дальше</button>'):'';
   return '<div class="card"><div class="ask"><span class="w">'+esc(q.w)+'</span>'
-    +lesson+'</div>'+tr+'<div class="opts">'+opts+'</div>'+next+'</div>';
+    +lesson+'</div>'+tr+full+'<div class="opts">'+opts+'</div>'+next+'</div>';
 }
 function trainerStatsHTML(stats,pool){
   const s=stats||{};
