@@ -690,7 +690,26 @@ out.addEventListener('click',ev=>{
 //
 // Старую страницу в кеше человека это не чинит — она уже у него. Чинит
 // следующую: её отказ больше не врёт.
-function say(text){ out.innerHTML='<div class="none">'+esc(text)+'</div>'; }
+// СОСТОЯНИЕ ДАННЫХ — ОДИН НОСИТЕЛЬ, И ИМ СТАНОВИТСЯ `say`.
+//
+// Возврат review-1 по #537, и находка настоящая: мой признак ожидания считал
+// «данных нет» за «данные в пути». На трёх измеренных входах — 404, пустой
+// файл, словарь без разделов — страница ЗНАЛА точную причину и писала её в
+// `out`, но `out` лежит внутри `<main id="dict">`, которую вкладка тренажёра
+// прячет. Человек на тренажёре видел обещание «появится сам», которого никто
+// не исполнит, а при доехавшем словаре без разделов это ещё и неправда о
+// состоянии.
+//
+// Поэтому причина теперь живёт не в скрытом узле, а в состоянии страницы:
+// `say` и пишет её человеку в словаре, и запоминает для всех, кто ждёт данных.
+// Второго носителя нет: кто сказал о беде, тот её и объявил.
+let pageTrouble='';
+function say(text){
+  pageTrouble=text;
+  out.innerHTML='<div class="none">'+esc(text)+'</div>';
+  // Ждущие узнают о беде там же, где узнали бы о приходе данных.
+  if(typeof trainerShow==='function'&&!document.getElementById('trainer').hidden) trainerShow();
+}
 // ЧЕТЫРЕ ИСХОДА, И КАЖДЫЙ ГОВОРИТ ТО, ЧТО ИЗВЕСТНО (наряд pm, возврат review-1).
 //
 //	не доехал файл      сеть, 404 — знаем точно
@@ -752,6 +771,15 @@ fetch('dict.json?'+Date.now()).then(
       меня.textContent='Загружено: '+ver+' · уроков '+уроков+' · статей '+статей+
         (пометок?(' · строк-пометок '+пометок):'')+
         ' · '+объём+(lastMod?(' · с сервера '+lastMod):'');
+      // ПРИХОД ДАННЫХ САМ ПОДНИМАЕТ ТО, ЧТО ЖДАЛО ДАННЫХ.
+      //
+      // Находка test-1 на живом продукте: вкладку «Тренажёр» открывали РАНЬШЕ,
+      // чем приходил dict.json, — пул собирался из пустоты, и карточка навсегда
+      // оставалась при «Вопросов нет», пока человек не уходил на другую вкладку
+      // и не возвращался. Причина: пересборка висела только на щелчке по
+      // вкладке. Теперь данные будят ждущих сами, и у вкладки нет обязанности
+      // угадывать, пришли ли они.
+      pageDataArrived();
       try{ render(''); }
       catch(e){
         say('Словарь загружен, но эта страница его не прочитала. Если она '+
@@ -1071,7 +1099,15 @@ globalThis.trainer={ru:trainerRu,why:trainerWhy,trim:trainerTrim,pool:trainerPoo
 // ВИД ТРЕНАЖЁРА — ТОЖЕ ЧИСТОЙ ФУНКЦИЕЙ: карточка собирается строкой, а DOM
 // только вставляет её. Поэтому прибор мерит то, что УВИДИТ человек (есть ли
 // транскрипция до ответа, что подсвечено), а не моё описание этого.
-function trainerCardHTML(q,judged){
+function trainerCardHTML(q,judged,waiting,trouble){
+  // ТРИ СОСТОЯНИЯ, А НЕ ДВА (условие наряда): «словарь ещё не пришёл» — не то
+  // же, что «вопросов нет». Первое проходит само, второе означает, что в
+  // словаре нечего спрашивать, и человеку они говорят разное.
+  // БЕДА НАЗЫВАЕТСЯ ПЕРВОЙ: «появится сам» при 404 или пустом файле — обещание,
+  // которого никто не исполнит.
+  if(trouble) return '<div class="none">'+esc(trouble)+'</div>';
+  if(waiting) return '<div class="none">Словарь ещё не пришёл — как придёт, '
+    +'вопрос появится сам.</div>';
   if(!q) return '<div class="none">Вопросов нет: в словаре не нашлось слов, '
     +'к которым есть три непохожих перевода.</div>';
   const marks=judged?judged.marks:null;
@@ -1106,8 +1142,22 @@ function trainerStatsHTML(stats,pool){
 // названы: текущая карточка, текущий вопрос, разбор ответа.
 let trainerState={card:null,q:null,judged:null,pool:[],stats:{}};
 function trainerShow(){
-  trainerBox.innerHTML=trainerCardHTML(trainerState.q,trainerState.judged);
-  trainerFoot.textContent=trainerStatsHTML(trainerState.stats,trainerState.pool);
+  // ЧЕТЫРЕ СОСТОЯНИЯ, А НЕ ТРИ (возврат review-1): «ждём» · «беда, и вот
+  // какая» · «спрашивать нечего» · вопрос. Беду называем словами страницы —
+  // теми же, что человек увидел бы в словаре.
+  const trouble=(!data&&pageTrouble)?pageTrouble:'';
+  // ПОРЯДОК ПРОВЕРОК И ЕСТЬ ПРАВИЛО: беда называется ПЕРЕД ожиданием, и
+  // лишнего условия в `waiting` для этого не нужно — оно было бы вторым
+  // носителем того же порядка (и прибор показал, что оно ничего не держит:
+  // снятие не краснело).
+  const waiting=!data&&!trainerState.pool.length;
+  trainerBox.innerHTML=trainerCardHTML(trainerState.q,trainerState.judged,waiting,trouble);
+  // ПОДВАЛ НЕ НАЗЫВАЕТ ПРИЧИНУ СВОИМИ СЛОВАМИ: «не получен» было бы неправдой
+  // при доехавшем словаре без разделов — та самая беда, только в меньшем месте.
+  trainerFoot.textContent=trouble
+    ? 'Вопросов нет: причина выше. Прогресс хранится в этом браузере.'
+    : (waiting ? 'Словарь ещё не пришёл. Прогресс хранится в этом браузере.'
+               : trainerStatsHTML(trainerState.stats,trainerState.pool));
 }
 function trainerNext(){
   trainerState.judged=null;
@@ -1149,6 +1199,19 @@ function pageTab(name){
   if(name==='exam'&&!examState.started) examStart();
 }
 function trainerTab(on){ pageTab(on?'trainer':'dict'); }
+// ЖДУЩИЕ ПОДНИМАЮТСЯ ОДНИМ МЕСТОМ, А НЕ КАЖДЫЙ ПО-СВОЕМУ: вкладок, собираемых
+// из словаря, станет больше, и помнить про каждую в обработчике запроса — это
+// второй носитель правила «данные пришли».
+function pageDataArrived(){
+  if(!data) return;
+  // Тренажёр: пул пуст, а вкладка уже открыта — собираем сейчас; если вкладка
+  // закрыта, соберётся при первом открытии, как и раньше.
+  if(!trainerState.pool.length && !document.getElementById('trainer').hidden) trainerStart();
+  // Вкладка экзамена ЖДАТЬ НЕ МОЖЕТ ПО ПОСТРОЕНИЮ, и это названо здесь, чтобы
+  // следующий не искал у неё ту же беду: её кнопка скрыта до прихода листа
+  // (`tabExam.hidden=false` в ответе на запрос), а лист приходит СВОИМ
+  // запросом. Открыть пустой экзамен нельзя — открывать нечего.
+}
 trainerBox.addEventListener('click',ev=>{
   const o=ev.target.closest&&ev.target.closest('[data-opt]');
   if(o){ trainerAnswer(+o.getAttribute('data-opt')); return; }
@@ -1159,6 +1222,7 @@ tabDict.addEventListener('click',()=>pageTab('dict'));
 tabTrainer.addEventListener('click',()=>pageTab('trainer'));
 tabExam.addEventListener('click',()=>pageTab('exam'));
 globalThis.trainer.cardHTML=trainerCardHTML;
+globalThis.trainer.arrived=()=>pageDataArrived();
 globalThis.trainer.statsHTML=trainerStatsHTML;
 
 // ЭКЗАМЕН НА СТРАНИЦЕ: ЧИСТЫЕ ФУНКЦИИ, DOM ТОЛЬКО ВСТАВЛЯЕТ ИХ СТРОКУ.
