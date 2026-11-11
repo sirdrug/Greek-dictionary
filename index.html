@@ -472,6 +472,14 @@ function entry(e,li,метка){
   const ourTr=(e.ours||[]).includes('tr'), ourRu=(e.ours||[]).includes('ru');
   let h='<div class="e"'+d+'><span class="w">'+esc(e.w)+'</span>';
   if(e.tr) h+=' <span class="tr'+(ourTr?' ours':'')+'">['+esc(e.tr)+']</span>';
+  // ЧИСЛОВАЯ ПАРА ПОКАЗЫВАЕТСЯ СТРОКОЙ АВТОРА: единственное, косая черта,
+  // множественное со своей транскрипцией. Текст его, порядок его; мы только
+  // красим слова так же, как в остальных статьях (условие наряда — «текст
+  // автора не меняем нигде»).
+  if(e.plural){
+    h+=' <span class="tr">/</span> <span class="w">'+esc(e.plural)+'</span>';
+    if(e.plural_tr) h+=' <span class="tr">['+esc(e.plural_tr)+']</span>';
+  }
   // Цифру рисует ПОТРЕБИТЕЛЬ: в данных она одним полем `digits`. Приписка к
   // переводу слепила бы сторожа дыры — у статьи с пустым переводом поле всё
   // равно было бы непусто (находка review-1).
@@ -536,8 +544,12 @@ function render(filter){
   secs.forEach((S,i)=>{
     const all=S.entries||[];
     const whole=sectionHit(S,f);
+    // ИСКАТЬ ПО ОБЕИМ ФОРМАМ, И ЭТО УСЛОВИЕ НАРЯДА: ученик наберёт «μήλα» —
+    // обязан найти «το μήλο». Множественное живёт своим полем (`plural`,
+    // `plural_tr`), и без него поиск знал бы только единственное.
     const es=whole?all
-                  :all.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru+' '+(e.digits||''))
+                  :all.filter(e=>!f||((e.w+' '+e.tr+' '+e.ru+' '+(e.digits||'')+
+                                       ' '+(e.plural||'')+' '+(e.plural_tr||''))
                                       .toLowerCase().includes(f)));
     if(!es.length) return;
     shownS++;
